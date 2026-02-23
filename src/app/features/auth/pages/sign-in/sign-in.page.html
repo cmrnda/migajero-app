@@ -1,0 +1,31 @@
+<div class="min-h-screen flex items-center justify-center p-4 bg-slate-50">
+  <div class="card w-full max-w-md p-6">
+    <h1 class="text-2xl font-bold">Iniciar sesión</h1>
+    <p class="text-slate-600 mt-1">Accede para guardar tu resultado y compartirlo sin rehacer el test.</p>
+
+    <form class="mt-5 space-y-3" [formGroup]="form" (ngSubmit)="onSubmit()">
+      <label class="block">
+        <span class="text-sm text-slate-700">Correo o usuario</span>
+        <input class="mt-1 w-full rounded-xl border border-brand/25 p-3 focus:outline-none focus:shadow-brand"
+               formControlName="login" placeholder="tu@correo.com" />
+      </label>
+
+      <label class="block">
+        <span class="text-sm text-slate-700">Contraseña</span>
+        <input class="mt-1 w-full rounded-xl border border-brand/25 p-3 focus:outline-none focus:shadow-brand"
+               type="password" formControlName="password" placeholder="********" />
+      </label>
+
+      <button class="btn-primary w-full" type="submit" [disabled]="auth.isLoading() || form.invalid">
+        {{ auth.isLoading() ? 'Entrando...' : 'Entrar' }}
+      </button>
+
+      <p *ngIf="auth.errorEs()" class="text-sm text-red-600">{{ auth.errorEs() }}</p>
+
+      <div class="flex justify-between text-sm mt-2">
+        <a class="text-brand font-semibold" routerLink="/auth/forgot">¿Olvidaste tu contraseña?</a>
+        <a class="text-slate-700" routerLink="/auth/sign-up">Crear cuenta</a>
+      </div>
+    </form>
+  </div>
+</div>

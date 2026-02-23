@@ -1,0 +1,37 @@
+<div class="min-h-screen flex items-center justify-center p-4 bg-slate-50">
+  <div class="card w-full max-w-md p-6">
+    <h1 class="text-2xl font-bold">Crear cuenta</h1>
+    <p class="text-slate-600 mt-1">Guarda tu resultado y compártelo sin rehacer el test.</p>
+
+    <form class="mt-5 space-y-3" [formGroup]="form" (ngSubmit)="onSubmit()">
+      <label class="block">
+        <span class="text-sm text-slate-700">Apodo</span>
+        <input class="mt-1 w-full rounded-xl border border-brand/25 p-3 focus:outline-none focus:shadow-brand"
+               formControlName="nickname" placeholder="Ej: Genex" />
+      </label>
+
+      <label class="block">
+        <span class="text-sm text-slate-700">Correo</span>
+        <input class="mt-1 w-full rounded-xl border border-brand/25 p-3 focus:outline-none focus:shadow-brand"
+               type="email" formControlName="email" placeholder="tu@correo.com" />
+      </label>
+
+      <label class="block">
+        <span class="text-sm text-slate-700">Contraseña</span>
+        <input class="mt-1 w-full rounded-xl border border-brand/25 p-3 focus:outline-none focus:shadow-brand"
+               type="password" formControlName="password" placeholder="********" />
+        <p class="text-xs text-slate-500 mt-1">Mínimo 8 caracteres.</p>
+      </label>
+
+      <button class="btn-primary w-full" type="submit" [disabled]="auth.isLoading() || form.invalid">
+        {{ auth.isLoading() ? 'Creando...' : 'Crear cuenta' }}
+      </button>
+
+      <p *ngIf="auth.errorEs()" class="text-sm text-red-600">{{ auth.errorEs() }}</p>
+
+      <p class="text-sm text-slate-600 mt-2">
+        ¿Ya tienes cuenta? <a class="text-brand font-semibold" routerLink="/auth/sign-in">Inicia sesión</a>
+      </p>
+    </form>
+  </div>
+</div>
