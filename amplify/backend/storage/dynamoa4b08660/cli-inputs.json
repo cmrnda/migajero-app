@@ -1,0 +1,14 @@
+{
+  "resourceName": "dynamoa4b08660",
+  "tableName": "migajero_app",
+  "partitionKey": {
+    "fieldName": "PK",
+    "fieldType": "string"
+  },
+  "sortKey": {
+    "fieldName": "SK",
+    "fieldType": "string"
+  },
+  "gsi": [],
+  "triggerFunctions": []
+}

@@ -1,0 +1,120 @@
+{
+  "api": {
+    "apifffc658f": {
+      "dependsOn": [
+        {
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "migajerotesta803a09d"
+        }
+      ],
+      "providerPlugin": "awscloudformation",
+      "service": "API Gateway"
+    }
+  },
+  "auth": {
+    "migajeroteste81fe9ad": {
+      "customAuth": false,
+      "dependsOn": [],
+      "frontendAuthConfig": {
+        "mfaConfiguration": "OFF",
+        "mfaTypes": [
+          "SMS"
+        ],
+        "passwordProtectionSettings": {
+          "passwordPolicyCharacters": [],
+          "passwordPolicyMinLength": 8
+        },
+        "signupAttributes": [
+          "EMAIL"
+        ],
+        "socialProviders": [],
+        "usernameAttributes": [
+          "EMAIL"
+        ],
+        "verificationMechanisms": [
+          "EMAIL"
+        ]
+      },
+      "providerPlugin": "awscloudformation",
+      "service": "Cognito"
+    }
+  },
+  "function": {
+    "migajerotesta803a09d": {
+      "build": true,
+      "dependsOn": [
+        {
+          "attributes": [
+            "Name",
+            "Arn",
+            "StreamArn"
+          ],
+          "category": "storage",
+          "resourceName": "dynamoa4b08660"
+        }
+      ],
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    }
+  },
+  "parameters": {
+    "AMPLIFY_function_migajerotesta803a09d_basePath": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "migajerotesta803a09d"
+        }
+      ]
+    },
+    "AMPLIFY_function_migajerotesta803a09d_bedrockModelId": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "migajerotesta803a09d"
+        }
+      ]
+    },
+    "AMPLIFY_function_migajerotesta803a09d_bedrockRegion": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "migajerotesta803a09d"
+        }
+      ]
+    },
+    "AMPLIFY_function_migajerotesta803a09d_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "migajerotesta803a09d"
+        }
+      ]
+    },
+    "AMPLIFY_function_migajerotesta803a09d_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "migajerotesta803a09d"
+        }
+      ]
+    },
+    "AMPLIFY_function_migajerotesta803a09d_tableName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "migajerotesta803a09d"
+        }
+      ]
+    }
+  },
+  "storage": {
+    "dynamoa4b08660": {
+      "providerPlugin": "awscloudformation",
+      "service": "DynamoDB"
+    }
+  }
+}
