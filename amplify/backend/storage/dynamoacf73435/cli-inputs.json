@@ -1,0 +1,10 @@
+{
+  "resourceName": "dynamoacf73435",
+  "tableName": "migajeroprofiles",
+  "partitionKey": {
+    "fieldName": "userId",
+    "fieldType": "string"
+  },
+  "gsi": [],
+  "triggerFunctions": []
+}

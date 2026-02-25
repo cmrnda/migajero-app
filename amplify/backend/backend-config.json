@@ -1,6 +1,6 @@
 {
   "api": {
-    "apifffc658f": {
+    "apieff38f7c": {
       "dependsOn": [
         {
           "attributes": [
@@ -8,7 +8,23 @@
             "Arn"
           ],
           "category": "function",
-          "resourceName": "migajerotesta803a09d"
+          "resourceName": "migajerotestba4f68bc"
+        },
+        {
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "migajerotest2461556e"
+        },
+        {
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "migajerotest9adab8c1"
         }
       ],
       "providerPlugin": "awscloudformation",
@@ -16,7 +32,7 @@
     }
   },
   "auth": {
-    "migajeroteste81fe9ad": {
+    "migajerotest8db19cf6": {
       "customAuth": false,
       "dependsOn": [],
       "frontendAuthConfig": {
@@ -44,7 +60,7 @@
     }
   },
   "function": {
-    "migajerotesta803a09d": {
+    "migajerotest2461556e": {
       "build": true,
       "dependsOn": [
         {
@@ -54,7 +70,66 @@
             "StreamArn"
           ],
           "category": "storage",
-          "resourceName": "dynamoa4b08660"
+          "resourceName": "dynamoeb88e40c"
+        },
+        {
+          "attributes": [
+            "Name",
+            "Arn",
+            "StreamArn"
+          ],
+          "category": "storage",
+          "resourceName": "dynamoacf73435"
+        }
+      ],
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
+    "migajerotest9adab8c1": {
+      "build": true,
+      "dependsOn": [
+        {
+          "attributes": [
+            "Name",
+            "Arn",
+            "StreamArn"
+          ],
+          "category": "storage",
+          "resourceName": "dynamoeb88e40c"
+        },
+        {
+          "attributes": [
+            "Name",
+            "Arn",
+            "StreamArn"
+          ],
+          "category": "storage",
+          "resourceName": "dynamoacf73435"
+        }
+      ],
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
+    "migajerotestba4f68bc": {
+      "build": true,
+      "dependsOn": [
+        {
+          "attributes": [
+            "Name",
+            "Arn",
+            "StreamArn"
+          ],
+          "category": "storage",
+          "resourceName": "dynamoeb88e40c"
+        },
+        {
+          "attributes": [
+            "Name",
+            "Arn",
+            "StreamArn"
+          ],
+          "category": "storage",
+          "resourceName": "dynamoacf73435"
         }
       ],
       "providerPlugin": "awscloudformation",
@@ -62,57 +137,61 @@
     }
   },
   "parameters": {
-    "AMPLIFY_function_migajerotesta803a09d_basePath": {
+    "AMPLIFY_function_migajerotest2461556e_deploymentBucketName": {
       "usedBy": [
         {
           "category": "function",
-          "resourceName": "migajerotesta803a09d"
+          "resourceName": "migajerotest2461556e"
         }
       ]
     },
-    "AMPLIFY_function_migajerotesta803a09d_bedrockModelId": {
+    "AMPLIFY_function_migajerotest2461556e_s3Key": {
       "usedBy": [
         {
           "category": "function",
-          "resourceName": "migajerotesta803a09d"
+          "resourceName": "migajerotest2461556e"
         }
       ]
     },
-    "AMPLIFY_function_migajerotesta803a09d_bedrockRegion": {
+    "AMPLIFY_function_migajerotest9adab8c1_deploymentBucketName": {
       "usedBy": [
         {
           "category": "function",
-          "resourceName": "migajerotesta803a09d"
+          "resourceName": "migajerotest9adab8c1"
         }
       ]
     },
-    "AMPLIFY_function_migajerotesta803a09d_deploymentBucketName": {
+    "AMPLIFY_function_migajerotest9adab8c1_s3Key": {
       "usedBy": [
         {
           "category": "function",
-          "resourceName": "migajerotesta803a09d"
+          "resourceName": "migajerotest9adab8c1"
         }
       ]
     },
-    "AMPLIFY_function_migajerotesta803a09d_s3Key": {
+    "AMPLIFY_function_migajerotestba4f68bc_deploymentBucketName": {
       "usedBy": [
         {
           "category": "function",
-          "resourceName": "migajerotesta803a09d"
+          "resourceName": "migajerotestba4f68bc"
         }
       ]
     },
-    "AMPLIFY_function_migajerotesta803a09d_tableName": {
+    "AMPLIFY_function_migajerotestba4f68bc_s3Key": {
       "usedBy": [
         {
           "category": "function",
-          "resourceName": "migajerotesta803a09d"
+          "resourceName": "migajerotestba4f68bc"
         }
       ]
     }
   },
   "storage": {
-    "dynamoa4b08660": {
+    "dynamoacf73435": {
+      "providerPlugin": "awscloudformation",
+      "service": "DynamoDB"
+    },
+    "dynamoeb88e40c": {
       "providerPlugin": "awscloudformation",
       "service": "DynamoDB"
     }

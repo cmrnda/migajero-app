@@ -1,0 +1,14 @@
+{
+  "resourceName": "dynamoeb88e40c",
+  "tableName": "migajeroresults",
+  "partitionKey": {
+    "fieldName": "userId",
+    "fieldType": "string"
+  },
+  "sortKey": {
+    "fieldName": "createdAt",
+    "fieldType": "string"
+  },
+  "gsi": [],
+  "triggerFunctions": []
+}
