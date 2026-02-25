@@ -19,6 +19,8 @@ export class SignInPage {
     password: ['', [Validators.required, Validators.minLength(8)]]
   });
 
+  showPassword = false;
+  
   async onSubmit() {
     if (this.form.invalid) return;
     const { login, password } = this.form.getRawValue();
