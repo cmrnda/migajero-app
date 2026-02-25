@@ -21,6 +21,7 @@ export class ResetPasswordPage {
     code: ['', [Validators.required, Validators.minLength(4)]],
     newPassword: ['', [Validators.required, Validators.minLength(8)]]
   });
+  showNewPassword = false;
 
   async onSubmit() {
     if (this.form.invalid || !this.login) return;

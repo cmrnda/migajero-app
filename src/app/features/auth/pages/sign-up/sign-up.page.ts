@@ -19,6 +19,7 @@ export class SignUpPage {
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(8)]]
   });
+   showPassword = false;
 
   async onSubmit() {
     if (this.form.invalid) return;
