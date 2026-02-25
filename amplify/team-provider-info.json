@@ -1,36 +1,41 @@
 {
   "dev": {
     "awscloudformation": {
-      "AuthRoleName": "amplify-migajerotest-dev-161e3-authRole",
-      "UnauthRoleArn": "arn:aws:iam::114030600469:role/amplify-migajerotest-dev-161e3-unauthRole",
-      "AuthRoleArn": "arn:aws:iam::114030600469:role/amplify-migajerotest-dev-161e3-authRole",
+      "AuthRoleName": "amplify-migajerotest-dev-fb6ee-authRole",
+      "UnauthRoleArn": "arn:aws:iam::114030600469:role/amplify-migajerotest-dev-fb6ee-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::114030600469:role/amplify-migajerotest-dev-fb6ee-authRole",
       "Region": "us-east-1",
-      "DeploymentBucketName": "amplify-migajerotest-dev-161e3-deployment",
-      "UnauthRoleName": "amplify-migajerotest-dev-161e3-unauthRole",
-      "StackName": "amplify-migajerotest-dev-161e3",
-      "StackId": "arn:aws:cloudformation:us-east-1:114030600469:stack/amplify-migajerotest-dev-161e3/18b8def0-106b-11f1-9a9f-0e2a90ed8a71",
-      "AmplifyAppId": "d29tdrze0fbjvk",
-      "APIGatewayAuthURL": "https://s3.amazonaws.com/amplify-migajerotest-dev-161e3-deployment/amplify-cfn-templates/api/APIGatewayAuthStack.json"
+      "DeploymentBucketName": "amplify-migajerotest-dev-fb6ee-deployment",
+      "UnauthRoleName": "amplify-migajerotest-dev-fb6ee-unauthRole",
+      "StackName": "amplify-migajerotest-dev-fb6ee",
+      "StackId": "arn:aws:cloudformation:us-east-1:114030600469:stack/amplify-migajerotest-dev-fb6ee/f726b530-11e8-11f1-b693-120d276248db",
+      "AmplifyAppId": "dgm5ky5pfht7",
+      "APIGatewayAuthURL": "https://s3.amazonaws.com/amplify-migajerotest-dev-fb6ee-deployment/amplify-cfn-templates/api/APIGatewayAuthStack.json"
     },
     "categories": {
+      "auth": {
+        "migajerotest8db19cf6": {}
+      },
       "function": {
-        "migajerotesta803a09d": {
-          "deploymentBucketName": "amplify-migajerotest-dev-161e3-deployment",
-          "s3Key": "amplify-builds/migajerotesta803a09d-6d794845353558525338-build.zip",
-          "tableName": "migajero_app",
-          "basePath": "/api",
-          "bedrockModelId": "amazon.titan-text-express-v1",
-          "bedrockRegion": "us-east-1"
+        "migajerotestba4f68bc": {
+          "deploymentBucketName": "amplify-migajerotest-dev-fb6ee-deployment",
+          "s3Key": "amplify-builds/migajerotestba4f68bc-68353170522b2b767355-build.zip"
+        },
+        "migajerotest2461556e": {
+          "deploymentBucketName": "amplify-migajerotest-dev-fb6ee-deployment",
+          "s3Key": "amplify-builds/migajerotest2461556e-4267547553726a444568-build.zip"
+        },
+        "migajerotest9adab8c1": {
+          "deploymentBucketName": "amplify-migajerotest-dev-fb6ee-deployment",
+          "s3Key": "amplify-builds/migajerotest9adab8c1-7646536168467244626e-build.zip"
         }
       },
       "api": {
-        "apifffc658f": {}
+        "apieff38f7c": {}
       },
       "storage": {
-        "dynamoa4b08660": {}
-      },
-      "auth": {
-        "migajeroteste81fe9ad": {}
+        "dynamoeb88e40c": {},
+        "dynamoacf73435": {}
       }
     }
   }

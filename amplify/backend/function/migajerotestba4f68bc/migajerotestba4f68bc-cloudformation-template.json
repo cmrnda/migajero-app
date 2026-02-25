@@ -16,29 +16,29 @@
     "s3Key": {
       "Type": "String"
     },
-    "storagedynamoa4b08660Name": {
+    "storagedynamoeb88e40cName": {
       "Type": "String",
-      "Default": "storagedynamoa4b08660Name"
+      "Default": "storagedynamoeb88e40cName"
     },
-    "storagedynamoa4b08660Arn": {
+    "storagedynamoeb88e40cArn": {
       "Type": "String",
-      "Default": "storagedynamoa4b08660Arn"
+      "Default": "storagedynamoeb88e40cArn"
     },
-    "storagedynamoa4b08660StreamArn": {
+    "storagedynamoeb88e40cStreamArn": {
       "Type": "String",
-      "Default": "storagedynamoa4b08660StreamArn"
+      "Default": "storagedynamoeb88e40cStreamArn"
     },
-    "tableName": {
-      "Type": "String"
+    "storagedynamoacf73435Name": {
+      "Type": "String",
+      "Default": "storagedynamoacf73435Name"
     },
-    "basePath": {
-      "Type": "String"
+    "storagedynamoacf73435Arn": {
+      "Type": "String",
+      "Default": "storagedynamoacf73435Arn"
     },
-    "bedrockModelId": {
-      "Type": "String"
-    },
-    "bedrockRegion": {
-      "Type": "String"
+    "storagedynamoacf73435StreamArn": {
+      "Type": "String",
+      "Default": "storagedynamoacf73435StreamArn"
     }
   },
   "Conditions": {
@@ -71,12 +71,12 @@
         "FunctionName": {
           "Fn::If": [
             "ShouldNotCreateEnvResources",
-            "migajerotesta803a09d",
+            "migajerotestba4f68bc",
             {
               "Fn::Join": [
                 "",
                 [
-                  "migajerotesta803a09d",
+                  "migajerotestba4f68bc",
                   "-",
                   {
                     "Ref": "env"
@@ -94,26 +94,23 @@
             "REGION": {
               "Ref": "AWS::Region"
             },
-            "STORAGE_DYNAMOA4B08660_NAME": {
-              "Ref": "storagedynamoa4b08660Name"
+            "STORAGE_DYNAMOEB88E40C_NAME": {
+              "Ref": "storagedynamoeb88e40cName"
             },
-            "STORAGE_DYNAMOA4B08660_ARN": {
-              "Ref": "storagedynamoa4b08660Arn"
+            "STORAGE_DYNAMOEB88E40C_ARN": {
+              "Ref": "storagedynamoeb88e40cArn"
             },
-            "STORAGE_DYNAMOA4B08660_STREAMARN": {
-              "Ref": "storagedynamoa4b08660StreamArn"
+            "STORAGE_DYNAMOEB88E40C_STREAMARN": {
+              "Ref": "storagedynamoeb88e40cStreamArn"
             },
-            "TABLE_NAME": {
-              "Ref": "tableName"
+            "STORAGE_DYNAMOACF73435_NAME": {
+              "Ref": "storagedynamoacf73435Name"
             },
-            "BASE_PATH": {
-              "Ref": "basePath"
+            "STORAGE_DYNAMOACF73435_ARN": {
+              "Ref": "storagedynamoacf73435Arn"
             },
-            "BEDROCK_MODEL_ID": {
-              "Ref": "bedrockModelId"
-            },
-            "BEDROCK_REGION": {
-              "Ref": "bedrockRegion"
+            "STORAGE_DYNAMOACF73435_STREAMARN": {
+              "Ref": "storagedynamoacf73435StreamArn"
             }
           }
         },
@@ -134,12 +131,12 @@
         "RoleName": {
           "Fn::If": [
             "ShouldNotCreateEnvResources",
-            "migajerotestLambdaRole3ce088f1",
+            "migajerotestLambdaRole170a5b7e",
             {
               "Fn::Join": [
                 "",
                 [
-                  "migajerotestLambdaRole3ce088f1",
+                  "migajerotestLambdaRole170a5b7e",
                   "-",
                   {
                     "Ref": "env"
@@ -241,18 +238,57 @@
                 "dynamodb:PartiQLSelect",
                 "dynamodb:Update*",
                 "dynamodb:RestoreTable*",
-                "dynamodb:PartiQLUpdate"
+                "dynamodb:PartiQLUpdate",
+                "dynamodb:Delete*",
+                "dynamodb:PartiQLDelete"
               ],
               "Resource": [
                 {
-                  "Ref": "storagedynamoa4b08660Arn"
+                  "Ref": "storagedynamoeb88e40cArn"
                 },
                 {
                   "Fn::Join": [
                     "/",
                     [
                       {
-                        "Ref": "storagedynamoa4b08660Arn"
+                        "Ref": "storagedynamoeb88e40cArn"
+                      },
+                      "index/*"
+                    ]
+                  ]
+                }
+              ]
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:Put*",
+                "dynamodb:Create*",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PartiQLInsert",
+                "dynamodb:Get*",
+                "dynamodb:BatchGetItem",
+                "dynamodb:List*",
+                "dynamodb:Describe*",
+                "dynamodb:Scan",
+                "dynamodb:Query",
+                "dynamodb:PartiQLSelect",
+                "dynamodb:Update*",
+                "dynamodb:RestoreTable*",
+                "dynamodb:PartiQLUpdate",
+                "dynamodb:Delete*",
+                "dynamodb:PartiQLDelete"
+              ],
+              "Resource": [
+                {
+                  "Ref": "storagedynamoacf73435Arn"
+                },
+                {
+                  "Fn::Join": [
+                    "/",
+                    [
+                      {
+                        "Ref": "storagedynamoacf73435Arn"
                       },
                       "index/*"
                     ]

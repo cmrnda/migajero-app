@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "paths": {
+    "/quiz": {
+      "name": "/quiz",
+      "lambdaFunction": "migajerotestba4f68bc",
+      "permissions": {
+        "setting": "private",
+        "auth": [
+          "create",
+          "read",
+          "update",
+          "delete"
+        ]
+      }
+    },
+    "/submit": {
+      "name": "/submit",
+      "lambdaFunction": "migajerotest2461556e",
+      "permissions": {
+        "setting": "private",
+        "auth": [
+          "create",
+          "read",
+          "update",
+          "delete"
+        ]
+      }
+    },
+    "/me": {
+      "name": "/me",
+      "lambdaFunction": "migajerotest9adab8c1",
+      "permissions": {
+        "setting": "private",
+        "auth": [
+          "create",
+          "read",
+          "update",
+          "delete"
+        ]
+      }
+    }
+  }
+}

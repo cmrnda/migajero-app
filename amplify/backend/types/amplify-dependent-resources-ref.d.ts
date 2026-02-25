@@ -1,13 +1,13 @@
 export type AmplifyDependentResourcesAttributes = {
   "api": {
-    "apifffc658f": {
+    "apieff38f7c": {
       "ApiId": "string",
       "ApiName": "string",
       "RootUrl": "string"
     }
   },
   "auth": {
-    "migajeroteste81fe9ad": {
+    "migajerotest8db19cf6": {
       "AppClientID": "string",
       "AppClientIDWeb": "string",
       "IdentityPoolId": "string",
@@ -18,7 +18,21 @@ export type AmplifyDependentResourcesAttributes = {
     }
   },
   "function": {
-    "migajerotesta803a09d": {
+    "migajerotest2461556e": {
+      "Arn": "string",
+      "LambdaExecutionRole": "string",
+      "LambdaExecutionRoleArn": "string",
+      "Name": "string",
+      "Region": "string"
+    },
+    "migajerotest9adab8c1": {
+      "Arn": "string",
+      "LambdaExecutionRole": "string",
+      "LambdaExecutionRoleArn": "string",
+      "Name": "string",
+      "Region": "string"
+    },
+    "migajerotestba4f68bc": {
       "Arn": "string",
       "LambdaExecutionRole": "string",
       "LambdaExecutionRoleArn": "string",
@@ -27,7 +41,15 @@ export type AmplifyDependentResourcesAttributes = {
     }
   },
   "storage": {
-    "dynamoa4b08660": {
+    "dynamoacf73435": {
+      "Arn": "string",
+      "Name": "string",
+      "PartitionKeyName": "string",
+      "PartitionKeyType": "string",
+      "Region": "string",
+      "StreamArn": "string"
+    },
+    "dynamoeb88e40c": {
       "Arn": "string",
       "Name": "string",
       "PartitionKeyName": "string",

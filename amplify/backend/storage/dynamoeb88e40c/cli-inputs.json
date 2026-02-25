@@ -1,12 +1,12 @@
 {
-  "resourceName": "dynamoa4b08660",
-  "tableName": "migajero_app",
+  "resourceName": "dynamoeb88e40c",
+  "tableName": "migajeroresults",
   "partitionKey": {
-    "fieldName": "PK",
+    "fieldName": "userId",
     "fieldType": "string"
   },
   "sortKey": {
-    "fieldName": "SK",
+    "fieldName": "createdAt",
     "fieldType": "string"
   },
   "gsi": [],
