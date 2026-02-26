@@ -1,3 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.material-symbols-rounded{
+  font-variation-settings:
+    "FILL" 0,      /* 0 outline, 1 relleno */
+    "wght" 500,    /* grosor */
+    "GRAD" 0,      /* grado */
+    "opsz" 24;     /* tamaño óptico */
+  line-height: 1;
+  vertical-align: middle;
+}

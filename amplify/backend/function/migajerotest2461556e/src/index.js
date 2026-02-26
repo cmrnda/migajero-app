@@ -14,13 +14,24 @@ const {
 const headers = {
   "Content-Type": "application/json",
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "*",
+  "Access-Control-Allow-Headers":
+    "Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token",
   "Access-Control-Allow-Methods": "POST,OPTIONS",
 };
 
 function json(statusCode, body) {
   return { statusCode, headers, body: JSON.stringify(body) };
 }
+
+function methodOf(event) {
+  return (
+    event?.httpMethod ||
+    event?.requestContext?.http?.method ||
+    event?.requestContext?.request?.method ||
+    ""
+  ).toUpperCase();
+}
+
 function pickUserId(event) {
   return (
     event?.requestContext?.identity?.cognitoIdentityId ||
@@ -29,6 +40,7 @@ function pickUserId(event) {
     null
   );
 }
+
 function parseBody(event) {
   if (!event?.body) return {};
   try {
@@ -48,15 +60,26 @@ function levelFromScore(score) {
   if (score <= 80) return "Migajer@ certificad@ (pero reversible)";
   return "Leyenda urbana del migajeo";
 }
+
 function prettyTags(tags) {
   const map = {
-    breadcrumbing: "Breadcrumbing magnet",
+    breadcrumbing: "Imán de breadcrumbing",
     esperanza: "Esperanza premium",
     ambiguedad: "Relación Schrödinger",
     limites: "Límites activados",
     autoestima: "Autoestima modo ON",
   };
   return (tags || []).map((t) => map[t] || t);
+}
+
+// ✅ FALLBACK (por si Bedrock falla)
+function fallbackComment({ score, level, tags, profile }) {
+  const name = (profile?.fullName || "").toString().trim();
+  const who = name ? `${name}, ` : "";
+  // 👇 aquí no repetimos score/tags en el tono final; solo lo usamos como fallback básico
+  return `${who}ya pues… tranqui nomás 😌
+Micro-acción: 24h sin stalkeo y a lo tuyo, de una.
+Cierre: límites y amor propio, casera.`;
 }
 
 // % real: cada pregunta score 0..10
@@ -81,7 +104,10 @@ function compute(answers) {
 }
 
 async function bedrockComment({ score, level, tags, profile }) {
-  const modelId = process.env.BEDROCK_MODEL_ID || "anthropic.claude-3-haiku-20240307-v1:0";
+  const modelId =
+    process.env.BEDROCK_MODEL_ID ||
+    "anthropic.claude-3-haiku-20240307-v1:0";
+
   const region =
     process.env.BEDROCK_REGION ||
     process.env.AWS_REGION ||
@@ -90,34 +116,45 @@ async function bedrockComment({ score, level, tags, profile }) {
 
   const client = new BedrockRuntimeClient({ region });
 
+  // ✅ Solo lo usamos como “color”, no para que lo repita
   const safeName = (profile?.fullName || "").toString().trim();
-  const nameHint = safeName ? `Nombre: ${safeName}\n` : "";
+  const nameHint = safeName ? `Nombre (opcional): ${safeName}\n` : "";
+
+  // ✅ Señal suave del resultado, SIN que lo repita textual
+  // (sirve para que el comentario cambie según “qué tan migajer@” fue)
+  const vibe =
+    score >= 85
+      ? "alto"
+      : score >= 60
+        ? "medio-alto"
+        : score >= 35
+          ? "medio"
+          : "bajo";
 
   const prompt = `
-Eres un narrador boliviano/a (La Paz vibe), con humor sano y cero mala onda.
-Devuelve SOLO 1 o 2 líneas cortas en español (máx 180 caracteres).
-Nada de consejos, nada de diagnóstico, nada de insultos ni humillación.
-Usa expresiones suaves tipo: "pues", "nomás", "che", "ya", "tranqui", "de una" (sin pasarte).
-Opcional: 1 emoji máximo.
+Eres un comentarista boliviano con humor .
+Tu tarea: escribir SOLO un comentario corto (2 a 3 líneas) sobre el resultado de un test de “migajer@”.
+Reglas estrictas:
+- NO repitas números, NO menciones “score”, NO menciones tags, NO listes categorías.
+- No insultes, no diagnostiques, no uses lenguaje explícito.
+- Usa 1–2 muletillas bolivianas máximo: "hijita", “ya pues”, “tranqui”, “nomás”, “de una”, “ohe”, “casera”, “che”, “yapa”, “como es”.
+- Devuelve texto plano, sin comillas, sin markdown.
 
-Datos:
-${nameHint}Score: ${score}/100
-Nivel: ${level}
-Tags: ${tags.join(" · ")}
-
-Respuesta: texto plano, sin comillas, sin markdown.
+${nameHint}Intensidad del migajeo: ${vibe}
+Nivel interno: ${level}
+Contexto interno: ${tags.join(" · ")}
 `.trim();
 
-  // Anthropic Messages API payload (InvokeModel)
   const payload = {
     anthropic_version: "bedrock-2023-05-31",
-    max_tokens: 80,
-    temperature: 0.9,
+    max_tokens: 90,
+    temperature: 0.8,
     messages: [{ role: "user", content: [{ type: "text", text: prompt }] }],
   };
 
   const command = new InvokeModelCommand({
     contentType: "application/json",
+    accept: "application/json",
     body: JSON.stringify(payload),
     modelId,
   });
@@ -127,21 +164,26 @@ Respuesta: texto plano, sin comillas, sin markdown.
   const responseBody = JSON.parse(decoded);
 
   let out = (responseBody?.content?.[0]?.text || "").trim();
+
+  // ✅ limpieza básica por si el modelo se pone creativo
+  out = out.replace(/```/g, "").replace(/^"+|"+$/g, "").trim();
+
+  // ✅ recorte duro para que sea cortito sí o sí
   if (out.length > 180) out = out.slice(0, 177) + "…";
   return out;
 }
 
 const REGION = process.env.AWS_REGION || process.env.REGION || "us-east-1";
-const ddb = DynamoDBDocumentClient.from(
-  new DynamoDBClient({ region: REGION }),
-  { marshallOptions: { removeUndefinedValues: true } }
-);
+const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: REGION }), {
+  marshallOptions: { removeUndefinedValues: true },
+});
 
 exports.handler = async (event) => {
   try {
-    if (event.httpMethod === "OPTIONS") return json(200, { ok: true });
-    if (event.httpMethod !== "POST")
-      return json(405, { message: "Method Not Allowed" });
+    const m = methodOf(event);
+
+    if (m === "OPTIONS") return json(200, { ok: true });
+    if (m !== "POST") return json(405, { message: "Method Not Allowed" });
 
     const userId = pickUserId(event);
     if (!userId) return json(401, { message: "No auth" });
@@ -156,8 +198,15 @@ exports.handler = async (event) => {
 
     const { score, tags } = compute(answers);
     const level = levelFromScore(score);
+    const createdAt = new Date().toISOString();
 
-    let comment = "Hoy toca tranqui nomás: migajas no, dignidad sí 😌";
+    let comment = fallbackComment({
+      score,
+      level,
+      tags,
+      profile: body.profile || {},
+    });
+
     try {
       const ai = await bedrockComment({
         score,
@@ -168,10 +217,7 @@ exports.handler = async (event) => {
       if (ai) comment = ai;
     } catch (e) {
       console.log("BEDROCK_FAIL", e?.name || e?.message || e);
-      // fallback se queda
     }
-
-    const createdAt = new Date().toISOString();
 
     await ddb.send(
       new PutCommand({

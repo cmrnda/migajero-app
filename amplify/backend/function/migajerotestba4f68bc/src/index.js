@@ -12,7 +12,11 @@ exports.handler = async (event) => {
       return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
     }
     if (method !== "GET") {
-      return { statusCode: 405, headers, body: JSON.stringify({ message: "Method Not Allowed" }) };
+      return {
+        statusCode: 405,
+        headers,
+        body: JSON.stringify({ message: "Method Not Allowed" }),
+      };
     }
 
     const version = event?.queryStringParameters?.v || "v1";
@@ -24,137 +28,137 @@ exports.handler = async (event) => {
       questions: [
         {
           id: "q1",
-          text: "Te responden cada 8 horas con un “jajaja”. Tú:",
+          text: "Te responden cada rato con un “jajaja” y nada más. Tú:",
           options: [
-            { id: "a", text: "Me basta. Al menos contestó.", score: 10, tags: ["breadcrumbing", "esperanza"] },
-            { id: "b", text: "Le respondo tranqui, sin apuro.", score: 5, tags: ["ambiguedad"] },
-            { id: "c", text: "No respondo. Yo también tengo vida.", score: 0, tags: ["autoestima", "limites"] }
+            { id: "a", text: "Me basta pues, al menos contestó.", score: 10, tags: ["breadcrumbing", "esperanza"] },
+            { id: "b", text: "Le respondo tranqui, sin apurarme.", score: 5, tags: ["ambiguedad"] },
+            { id: "c", text: "No respondo. Yo también tengo cosas que hacer.", score: 0, tags: ["autoestima", "limites"] }
           ]
         },
         {
           id: "q2",
-          text: "Te dicen “no quiero nada serio” pero te tratan como pareja:",
+          text: "Te dicen “no quiero nada serio” pero te tratan como pareja. Tú:",
           options: [
-            { id: "a", text: "Yo igual sigo, capaz cambia.", score: 10, tags: ["esperanza", "ambiguedad"] },
-            { id: "b", text: "Pregunto directo qué somos.", score: 4, tags: ["limites"] },
-            { id: "c", text: "Si no hay claridad, me voy con estilo.", score: 0, tags: ["autoestima"] }
+            { id: "a", text: "Sigo nomás… capaz cambia pues.", score: 10, tags: ["esperanza", "ambiguedad"] },
+            { id: "b", text: "Le pregunto directo: ¿qué somos al final?", score: 4, tags: ["limites"] },
+            { id: "c", text: "Sin claridad no hay trato. Me voy con estilo.", score: 0, tags: ["autoestima"] }
           ]
         },
         {
           id: "q3",
-          text: "Te cancelan a última hora y ponen: “otra vez será” (sin fecha):",
+          text: "Te cancelan a última hora y te dicen “ya será” (sin fecha). Tú:",
           options: [
             { id: "a", text: "Todo bien, yo entiendo… (otra vez).", score: 9, tags: ["breadcrumbing"] },
-            { id: "b", text: "Ok, pero tú propones día y hora.", score: 3, tags: ["limites"] },
+            { id: "b", text: "Ok, pero tú pon día y hora de una.", score: 3, tags: ["limites"] },
             { id: "c", text: "Perfecto, yo también cancelé mi interés.", score: 0, tags: ["autoestima"] }
           ]
         },
         {
           id: "q4",
-          text: "Solo te escriben de noche con “¿qué haces?”",
+          text: "Solo te escriben de noche con “¿qué haces?” Tú:",
           options: [
-            { id: "a", text: "Estoy disponible, obvio 😌", score: 10, tags: ["breadcrumbing"] },
-            { id: "b", text: "Respondo, pero con distancia.", score: 6, tags: ["ambiguedad"] },
-            { id: "c", text: "Modo avión. Mañana hablamos.", score: 0, tags: ["limites"] }
+            { id: "a", text: "Estoy libre, obvio pues ", score: 10, tags: ["breadcrumbing"] },
+            { id: "b", text: "Respondo, pero con distancia, ya.", score: 6, tags: ["ambiguedad"] },
+            { id: "c", text: "Modo avión. Mañana hablamos con luz del día.", score: 0, tags: ["limites"] }
           ]
         },
         {
           id: "q5",
-          text: "Te reaccionan historias pero no conversan:",
+          text: "Te reaccionan historias, pero conversar… nada. Tú:",
           options: [
-            { id: "a", text: "Eso ya es señal, ¿no? 🥹", score: 9, tags: ["esperanza"] },
-            { id: "b", text: "Les sigo el juego un poco.", score: 5, tags: ["ambiguedad"] },
-            { id: "c", text: "Reacción ≠ interés. Next.", score: 0, tags: ["autoestima"] }
+            { id: "a", text: "Eso ya es señal pues, ¿no? 🥹", score: 9, tags: ["esperanza"] },
+            { id: "b", text: "Les sigo el jueguito un rato.", score: 5, tags: ["ambiguedad"] },
+            { id: "c", text: "Reacción no es interés. Next, gracias.", score: 0, tags: ["autoestima"] }
           ]
         },
         {
           id: "q6",
-          text: "Te escriben “te extraño” pero no hacen nada:",
+          text: "Te dicen “te extraño” pero no hacen nada por verte. Tú:",
           options: [
-            { id: "a", text: "Yo sí siento, me quedo esperando.", score: 10, tags: ["esperanza", "ambiguedad"] },
-            { id: "b", text: "Les digo: hechos > palabras.", score: 3, tags: ["limites"] },
+            { id: "a", text: "Yo sí siento, me quedo esperando pues.", score: 10, tags: ["esperanza", "ambiguedad"] },
+            { id: "b", text: "Le digo: hechos > palabras, ya.", score: 3, tags: ["limites"] },
             { id: "c", text: "Te extraño yo: mi paz mental.", score: 0, tags: ["autoestima"] }
           ]
         },
         {
           id: "q7",
-          text: "Te dejan en visto y vuelven 2 días después como si nada:",
+          text: "Te dejan en visto y vuelven dos días después como si nada. Tú:",
           options: [
-            { id: "a", text: "Yo contesto igual, no pasa nada…", score: 9, tags: ["breadcrumbing"] },
-            { id: "b", text: "Contesto corto. Que se note.", score: 5, tags: ["limites"] },
-            { id: "c", text: "No respondo. Punto.", score: 0, tags: ["autoestima", "limites"] }
+            { id: "a", text: "Yo contesto igual… no pasa nada, che.", score: 9, tags: ["breadcrumbing"] },
+            { id: "b", text: "Contesto corto. Que se note el mensaje.", score: 5, tags: ["limites"] },
+            { id: "c", text: "No respondo. Punto y aparte.", score: 0, tags: ["autoestima", "limites"] }
           ]
         },
         {
           id: "q8",
-          text: "Te invitan cuando se les cae el plan principal:",
+          text: "Te invitan solo cuando se les cae el plan principal. Tú:",
           options: [
             { id: "a", text: "Acepto. Soy plan B pero con corazón.", score: 10, tags: ["breadcrumbing"] },
-            { id: "b", text: "Depende, pero una más y no.", score: 5, tags: ["limites"] },
-            { id: "c", text: "No soy plan de emergencia.", score: 0, tags: ["autoestima"] }
+            { id: "b", text: "Depende… una más y ya no.", score: 5, tags: ["limites"] },
+            { id: "c", text: "No soy plan de emergencia, gracias.", score: 0, tags: ["autoestima"] }
           ]
         },
         {
           id: "q9",
-          text: "Te hablan solo cuando están tristes o aburridos:",
+          text: "Te hablan solo cuando están tristes o aburridos. Tú:",
           options: [
-            { id: "a", text: "Aquí estoy. Siempre. 🫠", score: 10, tags: ["esperanza"] },
-            { id: "b", text: "Apoyo, pero no siempre estoy.", score: 4, tags: ["limites"] },
-            { id: "c", text: "No soy terapia gratis.", score: 0, tags: ["autoestima"] }
+            { id: "a", text: "Aquí estoy. Siempre. Ya pues 🫠", score: 10, tags: ["esperanza"] },
+            { id: "b", text: "Apoyo, pero tampoco soy 24/7.", score: 4, tags: ["limites"] },
+            { id: "c", text: "No soy terapia gratis, con cariño.", score: 0, tags: ["autoestima"] }
           ]
         },
         {
           id: "q10",
-          text: "Te dicen: “Eres increíble, pero…”",
+          text: "Te dicen: “Eres increíble, pero…” Tú:",
           options: [
-            { id: "a", text: "Me quedo por el “increíble”.", score: 9, tags: ["ambiguedad", "esperanza"] },
-            { id: "b", text: "Pregunto qué significa ese “pero”.", score: 4, tags: ["limites"] },
-            { id: "c", text: "Gracias. Siguiente capítulo.", score: 0, tags: ["autoestima"] }
+            { id: "a", text: "Me quedo por el “increíble” nomás.", score: 9, tags: ["ambiguedad", "esperanza"] },
+            { id: "b", text: "Le pregunto: ¿qué significa ese “pero”?", score: 4, tags: ["limites"] },
+            { id: "c", text: "Gracias. Siguiente capítulo de mi vida.", score: 0, tags: ["autoestima"] }
           ]
         },
         {
           id: "q11",
-          text: "Te piden fotos/atención pero no compromiso:",
+          text: "Te piden fotos/atención, pero compromiso cero. Tú:",
           options: [
-            { id: "a", text: "Accedo, total me quiere… ¿no?", score: 10, tags: ["breadcrumbing"] },
-            { id: "b", text: "Negocio condiciones (mínimo respeto).", score: 4, tags: ["limites"] },
+            { id: "a", text: "Accedo… total me quiere, ¿no? ", score: 10, tags: ["breadcrumbing"] },
+            { id: "b", text: "Negocio mínimo respeto, de una.", score: 4, tags: ["limites"] },
             { id: "c", text: "No doy beneficios sin contrato.", score: 0, tags: ["autoestima"] }
           ]
         },
         {
           id: "q12",
-          text: "Te dicen “andamos viendo” cuando preguntas qué son:",
+          text: "Cuando preguntas qué son, te dicen “andamos viendo”. Tú:",
           options: [
-            { id: "a", text: "Ok, sigo viendo también… (solo yo).", score: 10, tags: ["ambiguedad", "esperanza"] },
-            { id: "b", text: "Pido timeline y claridad.", score: 4, tags: ["limites"] },
+            { id: "a", text: "Ok… sigo viendo también (solo yo).", score: 10, tags: ["ambiguedad", "esperanza"] },
+            { id: "b", text: "Pido timeline y claridad, sin drama.", score: 4, tags: ["limites"] },
             { id: "c", text: "Si no hay definición, no hay acceso.", score: 0, tags: ["autoestima"] }
           ]
         },
         {
           id: "q13",
-          text: "Te ghostean y reaparecen con “perdón, estaba full”:",
+          text: "Te ghostean y vuelven con “perdón, estaba full”. Tú:",
           options: [
-            { id: "a", text: "Se entiende. La vida es dura. 🥲", score: 10, tags: ["breadcrumbing"] },
-            { id: "b", text: "Ok, pero no me desaparezcas así.", score: 4, tags: ["limites"] },
+            { id: "a", text: "Se entiende pues… la vida es dura 🥲", score: 10, tags: ["breadcrumbing"] },
+            { id: "b", text: "Ok, pero no me desaparezcas así, ya.", score: 4, tags: ["limites"] },
             { id: "c", text: "Full estaba yo… de paciencia.", score: 0, tags: ["autoestima"] }
           ]
         },
         {
           id: "q14",
-          text: "Te tratan bonito en privado, pero en público cero:",
+          text: "En privado te tratan bonito, pero en público ni te ubican. Tú:",
           options: [
-            { id: "a", text: "Mientras sea bonito, me basta.", score: 9, tags: ["ambiguedad"] },
-            { id: "b", text: "Lo converso, no me gusta ese juego.", score: 4, tags: ["limites"] },
-            { id: "c", text: "Si me escondes, me pierdes.", score: 0, tags: ["autoestima"] }
+            { id: "a", text: "Mientras sea bonito… me basta pues.", score: 9, tags: ["ambiguedad"] },
+            { id: "b", text: "Lo converso, no me late ese jueguito.", score: 4, tags: ["limites"] },
+            { id: "c", text: "Si me escondes, me pierdes. Fin.", score: 0, tags: ["autoestima"] }
           ]
         },
         {
           id: "q15",
-          text: "Te hacen promesas: “la próxima semana sí” (y nunca):",
+          text: "Te prometen: “la próxima semana sí” y nunca cumplen. Tú:",
           options: [
-            { id: "a", text: "Yo espero. Soy paciente profesional.", score: 10, tags: ["esperanza"] },
-            { id: "b", text: "Una oportunidad más, con fecha fija.", score: 5, tags: ["limites"] },
-            { id: "c", text: "Promesas sin acción = ruido.", score: 0, tags: ["autoestima"] }
+            { id: "a", text: "Yo espero… soy paciente profesional", score: 10, tags: ["esperanza"] },
+            { id: "b", text: "Una última, pero con fecha fija.", score: 5, tags: ["limites"] },
+            { id: "c", text: "Promesa sin acción = puro cuento.", score: 0, tags: ["autoestima"] }
           ]
         }
       ]

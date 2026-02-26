@@ -21,7 +21,9 @@ function readCache(): any | null {
 function writeCache(result: any) {
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify(result));
-  } catch {}
+  } catch {
+    // ignore
+  }
 }
 
 @Component({
@@ -67,34 +69,99 @@ export class SoloResultPage {
   private async makeBlob(): Promise<Blob> {
     const node = document.getElementById('resultCard');
     if (!node) throw new Error('No resultCard');
-    const blob = await htmlToImage.toBlob(node, { pixelRatio: 2 });
+
+    await this.ensureCardReady(node);
+
+    const blob = await htmlToImage.toBlob(node, {
+      pixelRatio: 2.5,
+      backgroundColor: '#ffffff',
+      cacheBust: true,
+      skipFonts: true
+    });
+
     if (!blob) throw new Error('No se pudo generar imagen');
     return blob;
   }
 
   async shareImage() {
-    const blob = await this.makeBlob();
-    const file = new File([blob], 'migajero.png', { type: 'image/png' });
+    try {
+      this.errorMsg = null;
+      const blob = await this.makeBlob();
+      const file = new File([blob], 'migajero.png', { type: 'image/png' });
 
-    const nav: any = navigator;
-    if (nav.canShare?.({ files: [file] }) && nav.share) {
-      await nav.share({ files: [file], title: 'Mi resultado', text: 'Solo entretenimiento 😌' });
-      return;
+      const nav: any = navigator;
+      if (nav.canShare?.({ files: [file] }) && nav.share) {
+        await nav.share({ files: [file], title: 'Mi resultado', text: 'Solo entretenimiento 😌' });
+        return;
+      }
+      await this.downloadImage();
+    } catch (e: any) {
+      this.errorMsg = e?.message ?? 'No se pudo compartir la imagen';
     }
-    await this.downloadImage();
   }
 
   async downloadImage() {
-    const blob = await this.makeBlob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'migajero.png';
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      this.errorMsg = null;
+      const blob = await this.makeBlob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'migajero.png';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e: any) {
+      this.errorMsg = e?.message ?? 'No se pudo descargar la imagen';
+    }
   }
 
   redoTest() {
     this.router.navigateByUrl('/solo/quiz?force=1');
+  }
+
+  get safeTags(): string[] {
+    const tags = (this.result?.tags ?? []) as string[];
+    return tags
+      .map(t => (t ?? '').trim())
+      .filter(t => !!t && t !== 'Relación Schrödinger');
+  }
+
+  get watermarkSrc(): string {
+    return 'assets/images/migajera_09_grupo.png';
+  }
+
+  get stickerSrc(): string {
+    const r = this.result ?? {};
+    const score = Number(r.score ?? 0);
+
+    const level = String(r.level ?? '').toLowerCase();
+    const tags = this.safeTags.join(' ').toLowerCase();
+
+    if (level.includes('enamor') || tags.includes('enamor')) {
+      return 'assets/images/migajera_07_abrazo_enamorados.png';
+    }
+
+    if (score >= 90) return 'assets/images/migajera_08_pulgar_arriba.png';
+    if (score >= 75) return 'assets/images/migajera_06_feliz_con_pan.png';
+    if (score >= 55) return 'assets/images/migajera_03_serio_con_pan.png';
+    if (score >= 35) return 'assets/images/migajera_01_lupa.png';
+    if (score >= 20) return 'assets/images/migajera_04_lupa_triste.png';
+    return 'assets/images/migajera_05_enojado.png';
+  }
+
+  private async ensureCardReady(node: HTMLElement) {
+    const imgs = Array.from(node.querySelectorAll('img')) as HTMLImageElement[];
+
+    await Promise.all(
+      imgs.map(img => {
+        if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+        return new Promise<void>((resolve) => {
+          img.onload = () => resolve();
+          img.onerror = () => resolve();
+        });
+      })
+    );
+
+    await new Promise<void>(r => requestAnimationFrame(() => requestAnimationFrame(() => r())));
   }
 }
