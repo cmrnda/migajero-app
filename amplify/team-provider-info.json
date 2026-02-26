@@ -19,15 +19,18 @@
       "function": {
         "migajerotestba4f68bc": {
           "deploymentBucketName": "amplify-migajerotest-dev-fb6ee-deployment",
-          "s3Key": "amplify-builds/migajerotestba4f68bc-68353170522b2b767355-build.zip"
+          "s3Key": "amplify-builds/migajerotestba4f68bc-4c396b647a396e597639-build.zip"
         },
         "migajerotest2461556e": {
           "deploymentBucketName": "amplify-migajerotest-dev-fb6ee-deployment",
-          "s3Key": "amplify-builds/migajerotest2461556e-4267547553726a444568-build.zip"
+          "s3Key": "amplify-builds/migajerotest2461556e-3467576f5836714e444a-build.zip",
+          "resultsTable": "migajeroresults"
         },
         "migajerotest9adab8c1": {
           "deploymentBucketName": "amplify-migajerotest-dev-fb6ee-deployment",
-          "s3Key": "amplify-builds/migajerotest9adab8c1-7646536168467244626e-build.zip"
+          "s3Key": "amplify-builds/migajerotest9adab8c1-4b643745452f554c6756-build.zip",
+          "profilesTable": "migajeroprofiles",
+          "resultsTable": "migajeroresults"
         }
       },
       "api": {

@@ -2,17 +2,32 @@ const headers = {
   "Content-Type": "application/json",
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "*",
-  "Access-Control-Allow-Methods": "GET,OPTIONS"
+  "Access-Control-Allow-Methods": "GET,OPTIONS",
 };
+
+function httpMethod(event) {
+  return event?.httpMethod || event?.requestContext?.http?.method || "GET";
+}
 
 exports.handler = async (event) => {
   try {
-    if (event.httpMethod === "OPTIONS") {
+    const method = httpMethod(event);
+
+    if (method === "OPTIONS") {
       return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
     }
 
+    if (method !== "GET") {
+      return { statusCode: 405, headers, body: JSON.stringify({ message: "Method Not Allowed" }) };
+    }
+
+    const version =
+      event?.queryStringParameters?.v ||
+      event?.queryStringParameters?.version ||
+      "v1";
+
     const quiz = {
-      version: "v1",
+      version,
       title: "Test Migajero",
       disclaimer: "Solo entretenimiento. No es diagnóstico psicológico.",
       questions: [
@@ -30,7 +45,7 @@ exports.handler = async (event) => {
 
     return { statusCode: 200, headers, body: JSON.stringify(quiz) };
   } catch (e) {
-    console.error(e);
+    console.error("QUIZ_ERROR", e);
     return { statusCode: 500, headers, body: JSON.stringify({ message: "quiz failed" }) };
   }
 };

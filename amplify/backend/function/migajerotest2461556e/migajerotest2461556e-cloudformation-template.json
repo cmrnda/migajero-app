@@ -39,6 +39,9 @@
     "storagedynamoacf73435StreamArn": {
       "Type": "String",
       "Default": "storagedynamoacf73435StreamArn"
+    },
+    "resultsTable": {
+      "Type": "String"
     }
   },
   "Conditions": {
@@ -111,6 +114,9 @@
             },
             "STORAGE_DYNAMOACF73435_STREAMARN": {
               "Ref": "storagedynamoacf73435StreamArn"
+            },
+            "RESULTS_TABLE": {
+              "Ref": "resultsTable"
             }
           }
         },

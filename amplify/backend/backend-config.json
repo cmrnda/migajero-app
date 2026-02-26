@@ -145,6 +145,14 @@
         }
       ]
     },
+    "AMPLIFY_function_migajerotest2461556e_resultsTable": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "migajerotest2461556e"
+        }
+      ]
+    },
     "AMPLIFY_function_migajerotest2461556e_s3Key": {
       "usedBy": [
         {
@@ -154,6 +162,22 @@
       ]
     },
     "AMPLIFY_function_migajerotest9adab8c1_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "migajerotest9adab8c1"
+        }
+      ]
+    },
+    "AMPLIFY_function_migajerotest9adab8c1_profilesTable": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "migajerotest9adab8c1"
+        }
+      ]
+    },
+    "AMPLIFY_function_migajerotest9adab8c1_resultsTable": {
       "usedBy": [
         {
           "category": "function",

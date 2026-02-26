@@ -6,12 +6,32 @@ export const routes: Routes = [
     path: 'auth',
     loadChildren: () => import('./features/auth/auth.routes').then(m => m.AUTH_ROUTES)
   },
+
   {
     path: '',
     canActivate: [authGuard],
     loadComponent: () => import('./features/home/home.page').then(m => m.HomePage)
   },
-  
-  { path: '**', redirectTo: '' }
 
+  {
+    path: 'me',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/me/me.page').then(m => m.MePage)
+  },
+
+  {
+    path: 'solo/quiz',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/solo/solo-quiz.page').then(m => m.SoloQuizPage)
+  },
+  {
+    path: 'solo/result',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/solo/solo-result.page').then(m => m.SoloResultPage)
+  },
+
+  // compat: si alguien entra a /quiz, lo mandamos al solitario
+  { path: 'quiz', redirectTo: 'solo/quiz', pathMatch: 'full' },
+
+  { path: '**', redirectTo: '' }
 ];

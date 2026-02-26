@@ -1,150 +1,150 @@
 <div class="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-brand-50">
-  <!-- Background blobs -->
   <div class="pointer-events-none absolute inset-0">
     <div class="absolute -top-32 -left-24 h-80 w-80 rounded-full bg-brand-400/25 blur-3xl motion-safe:animate-pulse"></div>
     <div class="absolute -bottom-32 -right-24 h-96 w-96 rounded-full bg-brand-600/15 blur-3xl motion-safe:animate-pulse"></div>
     <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(124,90,237,0.10),transparent_55%)]"></div>
   </div>
 
-  <!-- Header -->
   <header class="relative border-b border-slate-200/60 bg-white/70 backdrop-blur-xl">
     <div class="mx-auto max-w-6xl px-4 py-4 flex items-center justify-between gap-3">
       <div class="flex items-center gap-3">
         <div class="h-10 w-10 rounded-2xl bg-gradient-to-br from-brand-600 to-brand-500 shadow-lg shadow-brand-500/20"></div>
         <div>
           <div class="text-sm font-semibold text-slate-900 leading-tight">Migajero Test</div>
-          <div class="text-xs text-slate-500">Elige tu modo y empieza</div>
+          <div class="text-xs text-slate-500">Dashboard</div>
         </div>
       </div>
 
-      <div class="flex items-center gap-2">
+      <button
+        type="button"
+        class="rounded-2xl px-4 py-2 text-sm font-semibold text-white
+               bg-gradient-to-r from-brand-600 to-brand-500 shadow-lg shadow-brand-500/20
+               transition hover:brightness-110 active:scale-[0.99]"
+        (click)="onSignOut()"
+      >
+        Cerrar sesión
+      </button>
+    </div>
+  </header>
+
+  <main class="relative mx-auto max-w-6xl px-4 py-10">
+    <div class="rounded-3xl bg-white/75 backdrop-blur-xl shadow-2xl ring-1 ring-slate-200 p-8">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <div class="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 ring-1 ring-brand-200">
+            <span class="h-2 w-2 rounded-full bg-brand-500"></span>
+            Ya estás dentro ✅
+          </div>
+
+          <h1 class="mt-4 text-3xl font-extrabold tracking-tight text-slate-900">Elige un modo</h1>
+          <p class="mt-2 text-sm leading-relaxed text-slate-600">
+            Solitario está listo. Versus y Grupal entran después.
+          </p>
+        </div>
+
         <button
           type="button"
           class="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700
                  transition hover:text-brand-700 hover:border-brand-300"
-          (click)="testQuiz()"
+          (click)="goProfile()"
         >
-          Probar API
+          Mi perfil
         </button>
+      </div>
 
+      <div *ngIf="isLoading" class="mt-4 text-slate-500">Cargando…</div>
+
+      <div *ngIf="!isLoading && profileIncomplete" class="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+        <div class="font-semibold text-amber-900">Completa tu perfil</div>
+        <div class="text-amber-900/80 text-sm mt-1">
+          Nombre, edad y sexo ayudan a personalizar el resultado (sin hacerlo diagnóstico).
+        </div>
         <button
           type="button"
-          class="rounded-2xl px-4 py-2 text-sm font-semibold text-white
+          class="mt-3 rounded-2xl px-4 py-2 text-sm font-semibold text-white
                  bg-gradient-to-r from-brand-600 to-brand-500 shadow-lg shadow-brand-500/20
                  transition hover:brightness-110 active:scale-[0.99]"
-          (click)="onSignOut()"
+          (click)="goProfile()"
         >
-          Cerrar sesión
+          Completar ahora
         </button>
       </div>
-    </div>
-  </header>
 
-  <!-- Main -->
-  <main class="relative mx-auto max-w-6xl px-4 py-10">
-    <div class="rounded-3xl bg-white/75 backdrop-blur-xl shadow-2xl ring-1 ring-slate-200 p-8">
-      <div class="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 ring-1 ring-brand-200">
-        <span class="h-2 w-2 rounded-full bg-brand-500"></span>
-        Ya estás dentro ✅
-      </div>
-
-      <h1 class="mt-4 text-3xl font-extrabold tracking-tight text-slate-900">
-        ¿Qué modo quieres jugar?
-      </h1>
-      <p class="mt-2 text-sm leading-relaxed text-slate-600">
-        Haz el test en solitario, reta a alguien 1 vs 1 o arma un grupito (máx 5).
-      </p>
-
-      <!-- Cards -->
       <div class="mt-8 grid gap-4 sm:grid-cols-3">
-        <!-- Solitario -->
+        <!-- SOLITARIO -->
         <button
           type="button"
-          (click)="goSolo()"
-          class="group text-left rounded-3xl border border-slate-200 bg-white p-5
-                 transition hover:-translate-y-1 hover:shadow-xl hover:border-brand-300
+          class="group text-left rounded-3xl border border-slate-200 bg-white p-5 transition
+                 hover:-translate-y-1 hover:shadow-xl hover:border-brand-300
                  focus:outline-none focus:ring-4 focus:ring-brand-100"
+          (click)="startSolo()"
         >
-          <div class="flex items-start justify-between gap-3">
-            <div class="h-11 w-11 rounded-2xl bg-brand-50 ring-1 ring-brand-200 flex items-center justify-center">
-              <span class="text-brand-700 font-extrabold">S</span>
-            </div>
-            <span class="text-xs font-semibold text-slate-500 group-hover:text-brand-700 transition">Recomendado</span>
-          </div>
-
-          <div class="mt-4">
-            <div class="text-lg font-extrabold text-slate-900">Solitario</div>
-            <p class="mt-1 text-sm text-slate-600">
-              Haz el test rápido y obtén tu resultado al instante.
-            </p>
-          </div>
-
+          <div class="text-sm text-slate-500">Modo</div>
+          <div class="text-xl font-extrabold mt-1 text-slate-900">Solitario</div>
+          <p class="mt-2 text-sm text-slate-600">Haces el test y compartes tu resultado.</p>
           <div class="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-brand-700">
             Empezar <span class="transition group-hover:translate-x-1">→</span>
           </div>
         </button>
 
-        <!-- 1 vs 1 -->
+        <!-- 1 VS 1 -->
         <button
           type="button"
-          (click)="goVersus()"
-          class="group text-left rounded-3xl border border-slate-200 bg-white p-5
-                 transition hover:-translate-y-1 hover:shadow-xl hover:border-brand-300
+          class="group text-left rounded-3xl border border-slate-200 bg-white p-5 transition opacity-95
+                 hover:-translate-y-1 hover:shadow-xl hover:border-brand-300
                  focus:outline-none focus:ring-4 focus:ring-brand-100"
+          (click)="openComingSoon('VERSUS')"
         >
-          <div class="flex items-start justify-between gap-3">
-            <div class="h-11 w-11 rounded-2xl bg-brand-50 ring-1 ring-brand-200 flex items-center justify-center">
-              <span class="text-brand-700 font-extrabold">1v1</span>
-            </div>
-            <span class="text-xs font-semibold text-slate-500 group-hover:text-brand-700 transition">Reto</span>
-          </div>
-
-          <div class="mt-4">
-            <div class="text-lg font-extrabold text-slate-900">1 vs 1</div>
-            <p class="mt-1 text-sm text-slate-600">
-              Compite con alguien y comparen quién es más migajero.
-            </p>
-          </div>
-
-          <div class="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-brand-700">
-            Crear duelo <span class="transition group-hover:translate-x-1">→</span>
-          </div>
+          <div class="text-sm text-slate-500">Modo</div>
+          <div class="text-xl font-extrabold mt-1 text-slate-900">1 vs 1</div>
+          <p class="mt-2 text-sm text-slate-600">Duelo y ranking. Próximamente.</p>
+          <div class="mt-4 text-sm font-semibold text-brand-700">Próximamente</div>
         </button>
 
-        <!-- Grupal -->
+        <!-- GRUPAL -->
         <button
           type="button"
-          (click)="goGroup()"
-          class="group text-left rounded-3xl border border-slate-200 bg-white p-5
-                 transition hover:-translate-y-1 hover:shadow-xl hover:border-brand-300
+          class="group text-left rounded-3xl border border-slate-200 bg-white p-5 transition opacity-95
+                 hover:-translate-y-1 hover:shadow-xl hover:border-brand-300
                  focus:outline-none focus:ring-4 focus:ring-brand-100"
+          (click)="openComingSoon('GRUPAL')"
         >
-          <div class="flex items-start justify-between gap-3">
-            <div class="h-11 w-11 rounded-2xl bg-brand-50 ring-1 ring-brand-200 flex items-center justify-center">
-              <span class="text-brand-700 font-extrabold">5</span>
-            </div>
-            <span class="text-xs font-semibold text-slate-500 group-hover:text-brand-700 transition">Party</span>
-          </div>
-
-          <div class="mt-4">
-            <div class="text-lg font-extrabold text-slate-900">Grupal</div>
-            <p class="mt-1 text-sm text-slate-600">
-              Máx 5 personas. Ideal para reírse con amigos (sin funa).
-            </p>
-          </div>
-
-          <div class="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-brand-700">
-            Crear sala <span class="transition group-hover:translate-x-1">→</span>
-          </div>
+          <div class="text-sm text-slate-500">Modo</div>
+          <div class="text-xl font-extrabold mt-1 text-slate-900">Grupal (máx 5)</div>
+          <p class="mt-2 text-sm text-slate-600">Sala y ranking grupal. Próximamente.</p>
+          <div class="mt-4 text-sm font-semibold text-brand-700">Próximamente</div>
         </button>
       </div>
 
-      <!-- Footer -->
       <div class="pt-8 text-center text-xs text-slate-500">
         <span class="inline-flex items-center gap-2">
           <span class="h-1.5 w-1.5 rounded-full bg-brand-500"></span>
           <span class="font-semibold text-brand-700">AWS CLOUD CLUBS UMSA</span>
         </span>
+      </div>
+    </div>
+
+    <!-- MODAL -->
+    <div *ngIf="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-black/40" (click)="closeModal()"></div>
+
+      <div class="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+        <div class="text-sm text-slate-500">Modo</div>
+        <div class="text-xl font-extrabold mt-1">
+          {{ comingSoonMode === 'VERSUS' ? 'Versus (1 vs 1)' : 'Grupal (máx 5)' }}
+        </div>
+        <p class="text-slate-600 mt-2">Esto entra después de cerrar Solitario al 100%.</p>
+
+        <div class="mt-5 flex justify-end">
+          <button
+            type="button"
+            class="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700
+                   transition hover:text-brand-700 hover:border-brand-300"
+            (click)="closeModal()"
+          >
+            Ok
+          </button>
+        </div>
       </div>
     </div>
   </main>

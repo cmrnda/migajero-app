@@ -1,0 +1,89 @@
+<div class="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-brand-50">
+  <div class="pointer-events-none absolute inset-0">
+    <div class="absolute -top-32 -left-24 h-80 w-80 rounded-full bg-brand-400/25 blur-3xl motion-safe:animate-pulse"></div>
+    <div class="absolute -bottom-32 -right-24 h-96 w-96 rounded-full bg-brand-600/15 blur-3xl motion-safe:animate-pulse"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(124,90,237,0.10),transparent_55%)]"></div>
+  </div>
+
+  <header class="relative border-b border-slate-200/60 bg-white/70 backdrop-blur-xl">
+    <div class="mx-auto max-w-3xl px-4 py-4 flex items-center justify-between">
+      <div class="font-extrabold text-slate-900">Mi perfil</div>
+      <button
+        type="button"
+        class="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700
+               transition hover:text-brand-700 hover:border-brand-300"
+        (click)="goBack()"
+      >
+        Volver
+      </button>
+    </div>
+  </header>
+
+  <main class="relative mx-auto max-w-3xl px-4 py-8">
+    <div class="rounded-3xl bg-white/75 backdrop-blur-xl shadow-2xl ring-1 ring-slate-200 p-8">
+      <p class="text-slate-600 text-sm">
+        Esto solo personaliza el resultado. No es diagnóstico, es entretenimiento.
+      </p>
+
+      <div *ngIf="isLoading" class="mt-4 text-slate-500">Cargando…</div>
+
+      <div *ngIf="!isLoading && backendMissing" class="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+        <div class="font-semibold text-amber-900">Backend /me no está disponible</div>
+        <p class="mt-1 text-sm text-amber-900/80">
+          Puedes seguir con el test igual. Cuando implementes /me, aquí se guardará tu perfil.
+        </p>
+      </div>
+
+      <form *ngIf="!isLoading" class="mt-6 space-y-4" [formGroup]="form">
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700">Nombre</label>
+          <input
+            class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none
+                   focus:border-brand-400 focus:ring-4 focus:ring-brand-100"
+            type="text"
+            formControlName="fullName"
+            placeholder="Tu nombre"
+          />
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700">Edad</label>
+          <input
+            class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none
+                   focus:border-brand-400 focus:ring-4 focus:ring-brand-100"
+            type="number"
+            formControlName="age"
+            placeholder="Ej: 21"
+          />
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700">Sexo</label>
+          <select
+            class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none
+                   focus:border-brand-400 focus:ring-4 focus:ring-brand-100"
+            formControlName="gender"
+          >
+            <option value="" disabled>Selecciona</option>
+            <option value="F">Femenino</option>
+            <option value="M">Masculino</option>
+            <option value="X">Otro</option>
+            <option value="N">Prefiero no decir</option>
+          </select>
+        </div>
+
+        <button
+          type="button"
+          class="w-full rounded-2xl px-6 py-3 text-sm font-semibold text-white
+                 bg-gradient-to-r from-brand-600 to-brand-500 shadow-lg shadow-brand-500/20
+                 transition hover:brightness-110 active:scale-[0.99]
+                 disabled:opacity-60 disabled:cursor-not-allowed"
+          (click)="save()"
+          [disabled]="saving || form.invalid || backendMissing"
+        >
+          {{ saving ? 'Guardando…' : 'Guardar' }}
+        </button>
+      </form>
+    </div>
+  </main>
+</div>

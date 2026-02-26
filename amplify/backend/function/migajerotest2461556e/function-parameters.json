@@ -15,5 +15,11 @@
         "delete"
       ]
     }
-  }
+  },
+  "environmentVariableList": [
+    {
+      "cloudFormationParameterName": "resultsTable",
+      "environmentVariableName": "RESULTS_TABLE"
+    }
+  ]
 }

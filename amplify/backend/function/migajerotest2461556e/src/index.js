@@ -1,12 +1,53 @@
-const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
+/* Amplify Params - DO NOT EDIT
+	ENV
+	REGION
+	STORAGE_DYNAMOACF73435_ARN
+	STORAGE_DYNAMOACF73435_NAME
+	STORAGE_DYNAMOACF73435_STREAMARN
+	STORAGE_DYNAMOEB88E40C_ARN
+	STORAGE_DYNAMOEB88E40C_NAME
+	STORAGE_DYNAMOEB88E40C_STREAMARN
+Amplify Params - DO NOT EDIT */const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, PutCommand } = require("@aws-sdk/lib-dynamodb");
 
-const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
+const headers = {
+  "Content-Type": "application/json",
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "*",
+  "Access-Control-Allow-Methods": "POST,OPTIONS",
+};
 
+function httpMethod(event) {
+  return event?.httpMethod || event?.requestContext?.http?.method || "POST";
+}
+function json(statusCode, body) {
+  return { statusCode, headers, body: JSON.stringify(body) };
+}
 function pickUserId(event) {
   return (
     event?.requestContext?.identity?.cognitoIdentityId ||
     event?.requestContext?.authorizer?.claims?.sub ||
+    event?.requestContext?.authorizer?.jwt?.claims?.sub ||
+    null
+  );
+}
+function parseBody(event) {
+  if (!event?.body) return {};
+  try {
+    const raw = event.isBase64Encoded
+      ? Buffer.from(event.body, "base64").toString("utf-8")
+      : event.body;
+    return JSON.parse(raw);
+  } catch {
+    return {};
+  }
+}
+
+function resolveResultsTable() {
+  return (
+    process.env.RESULTS_TABLE ||
+    process.env.STORAGE_DYNAMOEB88E40C_NAME || // <- migajeroresults
+    process.env.STORAGE_MIGAJERORESULTS_NAME ||
     null
   );
 }
@@ -18,7 +59,6 @@ function levelFromScore(score) {
   if (score <= 80) return "Migajer@ certificad@ (pero reversible)";
   return "Leyenda urbana del migajeo";
 }
-
 function prettyTags(tags) {
   const map = {
     breadcrumbing: "Breadcrumbing magnet",
@@ -28,56 +68,49 @@ function prettyTags(tags) {
   };
   return (tags || []).map(t => map[t] || t);
 }
-
 function compute(answers) {
-  // MVP ultra simple: suma scores que te manda el front ya “resueltos”
-  // (luego lo hacemos robusto con el quiz real en backend)
   let raw = 0;
   const tagCount = new Map();
-
   for (const a of answers || []) {
     raw += Number(a.score || 0);
     for (const t of (a.tags || [])) tagCount.set(t, (tagCount.get(t) || 0) + 1);
   }
-
-  // clamp 0-100
   const score = Math.max(0, Math.min(100, raw));
   const topTags = [...tagCount.entries()].sort((a,b) => b[1]-a[1]).slice(0,3).map(([t]) => t);
-
   return { score, tags: prettyTags(topTags) };
 }
 
+const ddb = DynamoDBDocumentClient.from(
+  new DynamoDBClient({ region: process.env.AWS_REGION }),
+  { marshallOptions: { removeUndefinedValues: true } }
+);
+
 exports.handler = async (event) => {
   try {
-    if (event.httpMethod === "OPTIONS") {
-      return {
-        statusCode: 200,
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Headers": "*",
-          "Access-Control-Allow-Methods": "POST,OPTIONS"
-        },
-        body: JSON.stringify({ ok: true }),
-      };
-    }
+    const method = httpMethod(event);
+    if (method === "OPTIONS") return json(200, { ok: true });
+    if (method !== "POST") return json(405, { message: "Method Not Allowed" });
 
     const userId = pickUserId(event);
-    if (!userId) return { statusCode: 401, body: JSON.stringify({ message: "No auth" }) };
+    if (!userId) return json(401, { message: "No auth" });
 
-    const body = JSON.parse(event.body || "{}");
+    const body = parseBody(event);
     const answers = body.answers || [];
+    if (!Array.isArray(answers) || answers.length === 0) return json(400, { message: "answers requerido" });
 
-    if (!Array.isArray(answers) || answers.length === 0) {
-      return { statusCode: 400, body: JSON.stringify({ message: "answers requerido" }) };
+    const RESULTS_TABLE = resolveResultsTable();
+    console.log("TABLES", { RESULTS_TABLE });
+
+    if (!RESULTS_TABLE) {
+      return json(500, {
+        message: "No se pudo resolver RESULTS_TABLE",
+        hint: "Dale permisos de Storage a esta función (tabla migajeroresults) o setea env RESULTS_TABLE."
+      });
     }
 
     const { score, tags } = compute(answers);
     const level = levelFromScore(score);
-
     const createdAt = new Date().toISOString();
-
-    // Estas env vars las inyecta Amplify al dar permisos de Storage.
-    const RESULTS_TABLE = process.env.STORAGE_MIGAJERORESULTS_NAME;
 
     await ddb.send(new PutCommand({
       TableName: RESULTS_TABLE,
@@ -88,20 +121,14 @@ exports.handler = async (event) => {
         score,
         level,
         tags,
+        profile: body.profile || null,
         comment: "IA pendiente (Bedrock viene después)",
       }
     }));
 
-    return {
-      statusCode: 200,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
-      body: JSON.stringify({ score, level, tags }),
-    };
+    return json(200, { score, level, tags, createdAt });
   } catch (e) {
-    console.error(e);
-    return { statusCode: 500, body: JSON.stringify({ message: "Internal server error" }) };
+    console.error("SUBMIT_ERROR", e);
+    return json(500, { message: e?.name || "Internal server error", detail: e?.message || String(e) });
   }
 };
