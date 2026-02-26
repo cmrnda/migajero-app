@@ -9,7 +9,7 @@
     "framework": "angular",
     "config": {
       "SourceDir": "src",
-      "DistributionDir": "dist",
+      "DistributionDir": "dist/migajero-test/browser",
       "BuildCommand": "npm.cmd run-script build",
       "StartCommand": "ng serve"
     }

@@ -41,6 +41,9 @@
       "storage": {
         "dynamoeb88e40c": {},
         "dynamoacf73435": {}
+      },
+      "hosting": {
+        "S3AndCloudFront": {}
       }
     }
   }
