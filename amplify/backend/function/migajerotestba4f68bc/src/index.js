@@ -5,29 +5,14 @@ const headers = {
   "Access-Control-Allow-Methods": "GET,OPTIONS",
 };
 
-function httpMethod(event) {
-  return event?.httpMethod || event?.requestContext?.http?.method || "GET";
-}
-
 exports.handler = async (event) => {
   try {
-    const method = httpMethod(event);
-
-    if (method === "OPTIONS") {
-      return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
-    }
-
-    if (method !== "GET") {
-      return { statusCode: 405, headers, body: JSON.stringify({ message: "Method Not Allowed" }) };
-    }
-
-    const version =
-      event?.queryStringParameters?.v ||
-      event?.queryStringParameters?.version ||
-      "v1";
+    const method = event?.httpMethod || "GET";
+    if (method === "OPTIONS") return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
+    if (method !== "GET") return { statusCode: 405, headers, body: JSON.stringify({ message: "Method Not Allowed" }) };
 
     const quiz = {
-      version,
+      version: event?.queryStringParameters?.v || "v1",
       title: "Test Migajero",
       disclaimer: "Solo entretenimiento. No es diagnóstico psicológico.",
       questions: [

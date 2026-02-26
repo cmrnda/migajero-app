@@ -15,7 +15,9 @@ export class MePage {
 
   isLoading = false;
   saving = false;
-  backendMissing = false;
+
+  backendMissing = false;   // solo 404 real
+  errorMsg: string | null = null;
 
   readonly form = this.fb.group({
     fullName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(60)]],
@@ -25,9 +27,12 @@ export class MePage {
 
   async ngOnInit() {
     this.isLoading = true;
+    this.errorMsg = null;
+    this.backendMissing = false;
+
     try {
       const me = await getMe();
-      if (!me) {
+      if (!me) { // 404 real
         this.backendMissing = true;
         return;
       }
@@ -37,6 +42,8 @@ export class MePage {
         age: p.age ?? null,
         gender: p.gender ?? ''
       });
+    } catch (e: any) {
+      this.errorMsg = e?.message ?? 'Error cargando perfil';
     } finally {
       this.isLoading = false;
     }
@@ -51,9 +58,13 @@ export class MePage {
     if (this.form.invalid) return;
 
     this.saving = true;
+    this.errorMsg = null;
+
     try {
       await updateMe(this.form.getRawValue());
       this.goBack();
+    } catch (e: any) {
+      this.errorMsg = e?.message ?? 'Error guardando perfil';
     } finally {
       this.saving = false;
     }

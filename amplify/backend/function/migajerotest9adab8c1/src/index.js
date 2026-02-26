@@ -1,14 +1,21 @@
 /* Amplify Params - DO NOT EDIT
-	ENV
-	REGION
-	STORAGE_DYNAMOACF73435_ARN
-	STORAGE_DYNAMOACF73435_NAME
-	STORAGE_DYNAMOACF73435_STREAMARN
-	STORAGE_DYNAMOEB88E40C_ARN
-	STORAGE_DYNAMOEB88E40C_NAME
-	STORAGE_DYNAMOEB88E40C_STREAMARN
-Amplify Params - DO NOT EDIT */const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand } = require("@aws-sdk/lib-dynamodb");
+  ENV
+  REGION
+  STORAGE_DYNAMOACF73435_ARN
+  STORAGE_DYNAMOACF73435_NAME
+  STORAGE_DYNAMOACF73435_STREAMARN
+  STORAGE_DYNAMOEB88E40C_ARN
+  STORAGE_DYNAMOEB88E40C_NAME
+  STORAGE_DYNAMOEB88E40C_STREAMARN
+Amplify Params - DO NOT EDIT */
+
+const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
+const {
+  DynamoDBDocumentClient,
+  GetCommand,
+  PutCommand,
+  QueryCommand,
+} = require("@aws-sdk/lib-dynamodb");
 
 const headers = {
   "Content-Type": "application/json",
@@ -17,11 +24,11 @@ const headers = {
   "Access-Control-Allow-Methods": "GET,PUT,OPTIONS",
 };
 
-function httpMethod(event) {
-  return event?.httpMethod || event?.requestContext?.http?.method || "GET";
-}
 function json(statusCode, body) {
   return { statusCode, headers, body: JSON.stringify(body) };
+}
+function httpMethod(event) {
+  return event?.httpMethod || event?.requestContext?.http?.method || "GET";
 }
 function pickUserId(event) {
   return (
@@ -42,27 +49,16 @@ function parseBody(event) {
     return {};
   }
 }
-
-// ✅ RESOLVER tablas (prioridad: env manual -> env storage de amplify)
 function resolveProfilesTable() {
-  return (
-    process.env.PROFILES_TABLE ||
-    process.env.STORAGE_DYNAMOACF73435_NAME || // <- migajeroprofiles
-    process.env.STORAGE_MIGAJEROPROFILES_NAME ||
-    null
-  );
+  return process.env.STORAGE_DYNAMOACF73435_NAME || null; // migajeroprofiles-dev
 }
 function resolveResultsTable() {
-  return (
-    process.env.RESULTS_TABLE ||
-    process.env.STORAGE_DYNAMOEB88E40C_NAME || // <- migajeroresults
-    process.env.STORAGE_MIGAJERORESULTS_NAME ||
-    null
-  );
+  return process.env.STORAGE_DYNAMOEB88E40C_NAME || null; // migajeroresults-dev
 }
 
+const REGION = process.env.AWS_REGION || process.env.REGION;
 const ddb = DynamoDBDocumentClient.from(
-  new DynamoDBClient({ region: process.env.AWS_REGION }),
+  new DynamoDBClient({ region: REGION }),
   { marshallOptions: { removeUndefinedValues: true } }
 );
 
@@ -76,42 +72,32 @@ exports.handler = async (event) => {
 
     const PROFILES_TABLE = resolveProfilesTable();
     const RESULTS_TABLE = resolveResultsTable();
-
-    // 🔎 debug útil en logs
     console.log("TABLES", { PROFILES_TABLE, RESULTS_TABLE });
 
-    if (!PROFILES_TABLE) {
-      return json(500, {
-        message: "No se pudo resolver PROFILES_TABLE",
-        hint: "Dale permisos de Storage a esta función (tabla migajeroprofiles) o setea env PROFILES_TABLE."
-      });
-    }
+    if (!PROFILES_TABLE) return json(500, { message: "No PROFILES_TABLE" });
 
     if (method === "GET") {
-      const profileResp = await ddb.send(new GetCommand({
-        TableName: PROFILES_TABLE,
-        Key: { userId }
-      }));
+      const profileResp = await ddb.send(
+        new GetCommand({ TableName: PROFILES_TABLE, Key: { userId } })
+      );
 
       let lastResult = null;
       if (RESULTS_TABLE) {
-        try {
-          const lastResp = await ddb.send(new QueryCommand({
+        const lastResp = await ddb.send(
+          new QueryCommand({
             TableName: RESULTS_TABLE,
             KeyConditionExpression: "userId = :u",
             ExpressionAttributeValues: { ":u": userId },
             ScanIndexForward: false,
-            Limit: 1
-          }));
-          lastResult = lastResp.Items?.[0] || null;
-        } catch (e) {
-          console.log("LAST_RESULT_FAIL", e?.name || e?.message || e);
-        }
+            Limit: 1,
+          })
+        );
+        lastResult = lastResp.Items?.[0] || null;
       }
 
       return json(200, {
         profile: profileResp.Item?.profile ?? { fullName: null, age: null, gender: null },
-        lastResult
+        lastResult,
       });
     }
 
@@ -120,7 +106,7 @@ exports.handler = async (event) => {
 
       const fullName = (body.fullName ?? "").toString().trim();
       const age = Number(body.age);
-      const gender = (body.gender ?? "").toString().trim();
+      const gender = (body.gender ?? "").toString().trim(); // F | M | X | N
 
       if (fullName.length < 2) return json(400, { message: "fullName inválido" });
       if (!Number.isFinite(age) || age < 13 || age > 99) return json(400, { message: "age inválido" });
@@ -129,21 +115,16 @@ exports.handler = async (event) => {
       const item = {
         userId,
         updatedAt: new Date().toISOString(),
-        profile: { fullName, age, gender }
+        profile: { fullName, age, gender },
       };
 
-      await ddb.send(new PutCommand({
-        TableName: PROFILES_TABLE,
-        Item: item
-      }));
-
+      await ddb.send(new PutCommand({ TableName: PROFILES_TABLE, Item: item }));
       return json(200, { ok: true, profile: item.profile });
     }
 
     return json(405, { message: "Method Not Allowed" });
   } catch (e) {
     console.error("ME_ERROR", e);
-    // ⚠️ deja mensaje real para que lo veas en Network si quieres
-    return json(500, { message: e?.name || "Internal server error", detail: e?.message || String(e) });
+    return json(500, { message: e?.name || "Internal", detail: e?.message || String(e) });
   }
 };
