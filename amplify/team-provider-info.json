@@ -19,12 +19,14 @@
       "function": {
         "migajerotestba4f68bc": {
           "deploymentBucketName": "amplify-migajerotest-dev-fb6ee-deployment",
-          "s3Key": "amplify-builds/migajerotestba4f68bc-56583153316b45325374-build.zip"
+          "s3Key": "amplify-builds/migajerotestba4f68bc-68535465616454744264-build.zip"
         },
         "migajerotest2461556e": {
           "deploymentBucketName": "amplify-migajerotest-dev-fb6ee-deployment",
-          "s3Key": "amplify-builds/migajerotest2461556e-314c48556b6f45706437-build.zip",
-          "resultsTable": "migajeroresults"
+          "s3Key": "amplify-builds/migajerotest2461556e-547779436c57674e6376-build.zip",
+          "resultsTable": "migajeroresults",
+          "bedrockModelId": "anthropic.claude-3-haiku-20240307-v1:0",
+          "bedrockRegion": "us-east-1"
         },
         "migajerotest9adab8c1": {
           "deploymentBucketName": "amplify-migajerotest-dev-fb6ee-deployment",

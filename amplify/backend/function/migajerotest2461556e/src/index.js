@@ -6,6 +6,10 @@ Amplify Params - DO NOT EDIT */
 
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, PutCommand } = require("@aws-sdk/lib-dynamodb");
+const {
+  BedrockRuntimeClient,
+  InvokeModelCommand,
+} = require("@aws-sdk/client-bedrock-runtime");
 
 const headers = {
   "Content-Type": "application/json",
@@ -54,6 +58,8 @@ function prettyTags(tags) {
   };
   return (tags || []).map((t) => map[t] || t);
 }
+
+// % real: cada pregunta score 0..10
 function compute(answers) {
   let raw = 0;
   const tagCount = new Map();
@@ -67,14 +73,57 @@ function compute(answers) {
   const score = Math.max(0, Math.min(100, Math.round((raw / maxRaw) * 100)));
 
   const topTags = [...tagCount.entries()]
-    .sort((a,b) => b[1]-a[1])
-    .slice(0,3)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
     .map(([t]) => t);
 
   return { score, tags: prettyTags(topTags) };
 }
 
-const REGION = process.env.AWS_REGION || process.env.REGION;
+async function bedrockComment({ score, level, tags, profile }) {
+  const modelId = process.env.BEDROCK_MODEL_ID || "anthropic.claude-3-haiku-20240307-v1:0";
+  const region = process.env.BEDROCK_REGION || process.env.AWS_REGION || process.env.REGION || "us-east-1";
+
+  const client = new BedrockRuntimeClient({ region });
+
+  const safeName = (profile?.fullName || "").toString().trim();
+  const nameHint = safeName ? `Nombre: ${safeName}\n` : "";
+
+  const prompt = `
+Eres un copywriter estilo meme/serio, pero responsable.
+Escribe 2 a 4 líneas en español. No insultes, no humilles, no diagnostiques, no uses lenguaje explícito.
+Incluye 1 consejo práctico (micro-acción) y cierra con una línea positiva.
+${nameHint}Score: ${score}/100
+Nivel: ${level}
+Tags: ${tags.join(" · ")}
+Devuelve solo texto plano (sin comillas, sin markdown).
+`.trim();
+
+  // Anthropic Messages API payload (InvokeModel)
+  const payload = {
+    anthropic_version: "bedrock-2023-05-31",
+    max_tokens: 160,
+    temperature: 0.7,
+    messages: [
+      { role: "user", content: [{ type: "text", text: prompt }] }
+    ],
+  };
+
+  const command = new InvokeModelCommand({
+    contentType: "application/json",
+    body: JSON.stringify(payload),
+    modelId,
+  });
+
+  const apiResponse = await client.send(command);
+  const decoded = new TextDecoder().decode(apiResponse.body);
+  const responseBody = JSON.parse(decoded);
+
+  // Claude devuelve: { content: [{ text: "..." }] }
+  return (responseBody?.content?.[0]?.text || "").trim();
+}
+
+const REGION = process.env.AWS_REGION || process.env.REGION || "us-east-1";
 const ddb = DynamoDBDocumentClient.from(
   new DynamoDBClient({ region: REGION }),
   { marshallOptions: { removeUndefinedValues: true } }
@@ -97,6 +146,16 @@ exports.handler = async (event) => {
 
     const { score, tags } = compute(answers);
     const level = levelFromScore(score);
+
+    let comment = "Hoy toca modo avión emocional: 1 límite y 1 plan para ti. Tú puedes 😌";
+    try {
+      const ai = await bedrockComment({ score, level, tags, profile: body.profile || {} });
+      if (ai) comment = ai;
+    } catch (e) {
+      console.log("BEDROCK_FAIL", e?.name || e?.message || e);
+      // fallback se queda
+    }
+
     const createdAt = new Date().toISOString();
 
     await ddb.send(new PutCommand({
@@ -109,11 +168,11 @@ exports.handler = async (event) => {
         level,
         tags,
         profile: body.profile || null,
-        comment: "IA pendiente (Bedrock entra después)",
+        comment,
       }
     }));
 
-    return json(200, { score, level, tags, createdAt });
+    return json(200, { score, level, tags, comment, createdAt });
   } catch (e) {
     console.error("SUBMIT_ERROR", e);
     return json(500, { message: e?.name || "Internal", detail: e?.message || String(e) });

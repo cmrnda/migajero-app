@@ -137,6 +137,22 @@
     }
   },
   "parameters": {
+    "AMPLIFY_function_migajerotest2461556e_bedrockModelId": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "migajerotest2461556e"
+        }
+      ]
+    },
+    "AMPLIFY_function_migajerotest2461556e_bedrockRegion": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "migajerotest2461556e"
+        }
+      ]
+    },
     "AMPLIFY_function_migajerotest2461556e_deploymentBucketName": {
       "usedBy": [
         {
