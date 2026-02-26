@@ -82,7 +82,11 @@ function compute(answers) {
 
 async function bedrockComment({ score, level, tags, profile }) {
   const modelId = process.env.BEDROCK_MODEL_ID || "anthropic.claude-3-haiku-20240307-v1:0";
-  const region = process.env.BEDROCK_REGION || process.env.AWS_REGION || process.env.REGION || "us-east-1";
+  const region =
+    process.env.BEDROCK_REGION ||
+    process.env.AWS_REGION ||
+    process.env.REGION ||
+    "us-east-1";
 
   const client = new BedrockRuntimeClient({ region });
 
@@ -90,23 +94,26 @@ async function bedrockComment({ score, level, tags, profile }) {
   const nameHint = safeName ? `Nombre: ${safeName}\n` : "";
 
   const prompt = `
-Eres un copywriter estilo meme/serio, pero responsable.
-Escribe 2 a 4 líneas en español. No insultes, no humilles, no diagnostiques, no uses lenguaje explícito.
-Incluye 1 consejo práctico (micro-acción) y cierra con una línea positiva.
+Eres un narrador boliviano/a (La Paz vibe), con humor sano y cero mala onda.
+Devuelve SOLO 1 o 2 líneas cortas en español (máx 180 caracteres).
+Nada de consejos, nada de diagnóstico, nada de insultos ni humillación.
+Usa expresiones suaves tipo: "pues", "nomás", "che", "ya", "tranqui", "de una" (sin pasarte).
+Opcional: 1 emoji máximo.
+
+Datos:
 ${nameHint}Score: ${score}/100
 Nivel: ${level}
 Tags: ${tags.join(" · ")}
-Devuelve solo texto plano (sin comillas, sin markdown).
+
+Respuesta: texto plano, sin comillas, sin markdown.
 `.trim();
 
   // Anthropic Messages API payload (InvokeModel)
   const payload = {
     anthropic_version: "bedrock-2023-05-31",
-    max_tokens: 160,
-    temperature: 0.7,
-    messages: [
-      { role: "user", content: [{ type: "text", text: prompt }] }
-    ],
+    max_tokens: 80,
+    temperature: 0.9,
+    messages: [{ role: "user", content: [{ type: "text", text: prompt }] }],
   };
 
   const command = new InvokeModelCommand({
@@ -119,8 +126,9 @@ Devuelve solo texto plano (sin comillas, sin markdown).
   const decoded = new TextDecoder().decode(apiResponse.body);
   const responseBody = JSON.parse(decoded);
 
-  // Claude devuelve: { content: [{ text: "..." }] }
-  return (responseBody?.content?.[0]?.text || "").trim();
+  let out = (responseBody?.content?.[0]?.text || "").trim();
+  if (out.length > 180) out = out.slice(0, 177) + "…";
+  return out;
 }
 
 const REGION = process.env.AWS_REGION || process.env.REGION || "us-east-1";
@@ -132,14 +140,16 @@ const ddb = DynamoDBDocumentClient.from(
 exports.handler = async (event) => {
   try {
     if (event.httpMethod === "OPTIONS") return json(200, { ok: true });
-    if (event.httpMethod !== "POST") return json(405, { message: "Method Not Allowed" });
+    if (event.httpMethod !== "POST")
+      return json(405, { message: "Method Not Allowed" });
 
     const userId = pickUserId(event);
     if (!userId) return json(401, { message: "No auth" });
 
     const body = parseBody(event);
     const answers = body.answers || [];
-    if (!Array.isArray(answers) || answers.length === 0) return json(400, { message: "answers requerido" });
+    if (!Array.isArray(answers) || answers.length === 0)
+      return json(400, { message: "answers requerido" });
 
     const RESULTS_TABLE = process.env.STORAGE_DYNAMOEB88E40C_NAME;
     if (!RESULTS_TABLE) return json(500, { message: "No RESULTS_TABLE" });
@@ -147,9 +157,14 @@ exports.handler = async (event) => {
     const { score, tags } = compute(answers);
     const level = levelFromScore(score);
 
-    let comment = "Hoy toca modo avión emocional: 1 límite y 1 plan para ti. Tú puedes 😌";
+    let comment = "Hoy toca tranqui nomás: migajas no, dignidad sí 😌";
     try {
-      const ai = await bedrockComment({ score, level, tags, profile: body.profile || {} });
+      const ai = await bedrockComment({
+        score,
+        level,
+        tags,
+        profile: body.profile || {},
+      });
       if (ai) comment = ai;
     } catch (e) {
       console.log("BEDROCK_FAIL", e?.name || e?.message || e);
@@ -158,23 +173,28 @@ exports.handler = async (event) => {
 
     const createdAt = new Date().toISOString();
 
-    await ddb.send(new PutCommand({
-      TableName: RESULTS_TABLE,
-      Item: {
-        userId,
-        createdAt,
-        mode: body.mode || "SOLO",
-        score,
-        level,
-        tags,
-        profile: body.profile || null,
-        comment,
-      }
-    }));
+    await ddb.send(
+      new PutCommand({
+        TableName: RESULTS_TABLE,
+        Item: {
+          userId,
+          createdAt,
+          mode: body.mode || "SOLO",
+          score,
+          level,
+          tags,
+          profile: body.profile || null,
+          comment,
+        },
+      })
+    );
 
     return json(200, { score, level, tags, comment, createdAt });
   } catch (e) {
     console.error("SUBMIT_ERROR", e);
-    return json(500, { message: e?.name || "Internal", detail: e?.message || String(e) });
+    return json(500, {
+      message: e?.name || "Internal",
+      detail: e?.message || String(e),
+    });
   }
 };

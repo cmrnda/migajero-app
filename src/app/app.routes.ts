@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { soloGateGuard } from './core/guards/solo-gate.guard';
 
 export const routes: Routes = [
   {
@@ -21,7 +22,7 @@ export const routes: Routes = [
 
   {
     path: 'solo/quiz',
-    canActivate: [authGuard],
+    canActivate: [authGuard, soloGateGuard],
     loadComponent: () => import('./features/solo/solo-quiz.page').then(m => m.SoloQuizPage)
   },
   {
@@ -30,7 +31,6 @@ export const routes: Routes = [
     loadComponent: () => import('./features/solo/solo-result.page').then(m => m.SoloResultPage)
   },
 
-  // compat: si alguien entra a /quiz, lo mandamos al solitario
   { path: 'quiz', redirectTo: 'solo/quiz', pathMatch: 'full' },
 
   { path: '**', redirectTo: '' }

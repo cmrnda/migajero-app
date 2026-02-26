@@ -3,6 +3,14 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { fetchQuiz, getMe, submitQuiz } from '../../core/api/migajero-api';
 
+const CACHE_KEY = 'migajero:lastResult';
+
+function writeCache(result: any) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(result));
+  } catch {}
+}
+
 @Component({
   standalone: true,
   imports: [CommonModule, RouterModule],
@@ -13,20 +21,40 @@ export class SoloQuizPage {
 
   quiz: any = null;
   me: any = null;
+
   loading = false;
+  submitting = false;
+
+  errorMsg: string | null = null;
+  lastResult: any = null;
 
   idx = 0;
   answers = new Map<string, { optionId: string; score: number; tags: string[] }>();
 
   async ngOnInit() {
     this.loading = true;
+    this.errorMsg = null;
+
     try {
-      const [quiz, me] = await Promise.all([fetchQuiz('v1'), getMe()]);
-      this.quiz = quiz;
-      this.me = me; // puede ser null
+      this.quiz = await fetchQuiz('v1');
+
+      try {
+        this.me = await getMe();
+        this.lastResult = this.me?.lastResult ?? null;
+      } catch (e: any) {
+        this.me = null;
+        this.lastResult = null;
+        console.log('ME_FAIL (no bloquea):', e?.message ?? e);
+      }
+    } catch (e: any) {
+      this.errorMsg = e?.message ?? 'Error cargando el test';
     } finally {
       this.loading = false;
     }
+  }
+
+  goLastResult() {
+    this.router.navigateByUrl('/solo/result');
   }
 
   get q() {
@@ -34,6 +62,7 @@ export class SoloQuizPage {
   }
 
   select(option: any) {
+    if (!this.q) return;
     this.answers.set(this.q.id, { optionId: option.id, score: option.score, tags: option.tags });
   }
 
@@ -42,7 +71,7 @@ export class SoloQuizPage {
   }
 
   canNext() {
-    return this.answers.has(this.q?.id);
+    return !!this.q && this.answers.has(this.q.id);
   }
 
   next() {
@@ -55,29 +84,41 @@ export class SoloQuizPage {
   }
 
   canSubmit() {
-    return this.quiz && this.answers.size === this.quiz.questions.length;
+    return this.quiz && this.answers.size === this.quiz.questions.length && !this.submitting;
   }
 
   async submit() {
     if (!this.canSubmit()) return;
 
-    const p = this.me?.profile ?? {};
-    const payload = {
-      mode: 'SOLO',
-      profile: {
-        fullName: p.fullName ?? null,
-        age: p.age ?? null,
-        gender: p.gender ?? null
-      },
-      answers: [...this.answers.entries()].map(([questionId, v]) => ({
-        questionId,
-        optionId: v.optionId,
-        score: v.score,
-        tags: v.tags
-      }))
-    };
+    this.submitting = true;
+    this.errorMsg = null;
 
-    const result = await submitQuiz(payload);
-    this.router.navigateByUrl('/solo/result', { state: { result } as any });
+    try {
+      const p = this.me?.profile ?? {};
+      const payload = {
+        mode: 'SOLO',
+        profile: {
+          fullName: p.fullName ?? null,
+          age: p.age ?? null,
+          gender: p.gender ?? null
+        },
+        answers: [...this.answers.entries()].map(([questionId, v]) => ({
+          questionId,
+          optionId: v.optionId,
+          score: v.score,
+          tags: v.tags
+        }))
+      };
+
+      const result = await submitQuiz(payload);
+
+      writeCache(result);
+
+      this.router.navigateByUrl('/solo/result', { state: { result } as any });
+    } catch (e: any) {
+      this.errorMsg = e?.message ?? 'Error enviando el test';
+    } finally {
+      this.submitting = false;
+    }
   }
 }

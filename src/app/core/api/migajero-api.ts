@@ -27,14 +27,13 @@ export const fetchQuiz = (v='v1') =>
 export const submitQuiz = (payload: any) =>
   requestJson(post({ apiName: API_NAME, path: '/submit', options: { body: payload } }));
 
-export async function getMe() {
-  try {
-    return await requestJson(get({ apiName: API_NAME, path: '/me' }));
-  } catch (e: any) {
-    if (e?.statusCode === 404) return null; // solo aquí es “missing”
-    throw e; // 401/403/405/500 se ven como error real
-  }
-}
+export const getMe = () =>
+  requestJson(get({ apiName: API_NAME, path: '/me' }));
 
 export const updateMe = (payload: any) =>
   requestJson(put({ apiName: API_NAME, path: '/me', options: { body: payload } }));
+
+export async function getMyLastResult() {
+  const me = await getMe();
+  return me?.lastResult ?? null;
+}

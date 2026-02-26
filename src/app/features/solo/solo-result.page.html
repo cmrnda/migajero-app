@@ -19,19 +19,19 @@
   </header>
 
   <main class="relative mx-auto max-w-3xl px-4 py-8">
-    <div *ngIf="!result" class="rounded-3xl bg-white/75 backdrop-blur-xl shadow-2xl ring-1 ring-slate-200 p-8">
-      <div class="font-extrabold text-slate-900">No hay resultado</div>
-      <p class="text-slate-600 mt-1">Vuelve al dashboard y haz el test.</p>
-      <a
-        routerLink="/"
-        class="mt-4 inline-block rounded-2xl px-5 py-3 text-sm font-semibold text-white
-               bg-gradient-to-r from-brand-600 to-brand-500 shadow-lg shadow-brand-500/20"
-      >
-        Volver
-      </a>
+    <div *ngIf="loading" class="rounded-3xl bg-white/75 backdrop-blur-xl shadow-2xl ring-1 ring-slate-200 p-8 text-slate-600">
+      Cargando tu último resultado…
     </div>
 
-    <div *ngIf="result" class="space-y-4">
+    <div *ngIf="!loading && errorMsg" class="rounded-3xl border border-rose-200 bg-rose-50 p-6">
+      <div class="font-bold text-rose-900">Error</div>
+      <div class="text-rose-900/80 mt-1 text-sm">{{ errorMsg }}</div>
+      <button class="mt-4 rounded-2xl border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-900" (click)="redoTest()">
+        Ir al test
+      </button>
+    </div>
+
+    <div *ngIf="!loading && result" class="space-y-4">
       <div id="resultCard" class="rounded-3xl bg-white/75 backdrop-blur-xl shadow-2xl ring-1 ring-slate-200 p-8">
         <div class="text-sm text-slate-500">Tu resultado</div>
         <div class="text-5xl font-black mt-2 text-brand-700">{{ result.score }}%</div>
@@ -67,6 +67,15 @@
           Descargar
         </button>
       </div>
+
+      <button
+        type="button"
+        class="w-full rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700
+               transition hover:text-brand-700 hover:border-brand-300"
+        (click)="redoTest()"
+      >
+        Rehacer test
+      </button>
     </div>
   </main>
 </div>

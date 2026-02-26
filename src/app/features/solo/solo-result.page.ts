@@ -1,7 +1,28 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import * as htmlToImage from 'html-to-image';
+import { getMyLastResult } from '../../core/api/migajero-api';
+
+const CACHE_KEY = 'migajero:lastResult';
+
+function readCache(): any | null {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    if (!obj || typeof obj.score !== 'number') return null;
+    return obj;
+  } catch {
+    return null;
+  }
+}
+
+function writeCache(result: any) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(result));
+  } catch {}
+}
 
 @Component({
   standalone: true,
@@ -9,7 +30,39 @@ import * as htmlToImage from 'html-to-image';
   templateUrl: './solo-result.page.html'
 })
 export class SoloResultPage {
+  private readonly router = inject(Router);
+
   result: any = (history.state as any)?.result ?? null;
+  loading = false;
+  errorMsg: string | null = null;
+
+  async ngOnInit() {
+    if (this.result) {
+      writeCache(this.result);
+      return;
+    }
+
+    const cached = readCache();
+    if (cached) {
+      this.result = cached;
+      return;
+    }
+
+    this.loading = true;
+    try {
+      const last = await getMyLastResult();
+      if (last) {
+        this.result = last;
+        writeCache(last);
+      } else {
+        this.router.navigateByUrl('/solo/quiz?force=1');
+      }
+    } catch (e: any) {
+      this.errorMsg = e?.message ?? 'Error cargando tu último resultado';
+    } finally {
+      this.loading = false;
+    }
+  }
 
   private async makeBlob(): Promise<Blob> {
     const node = document.getElementById('resultCard');
@@ -39,5 +92,9 @@ export class SoloResultPage {
     a.download = 'migajero.png';
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  redoTest() {
+    this.router.navigateByUrl('/solo/quiz?force=1');
   }
 }

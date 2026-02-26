@@ -24,7 +24,7 @@ export class HomePage {
   async ngOnInit() {
     this.isLoading = true;
     try {
-      this.me = await getMe(); // si no existe /me, retorna null
+      this.me = await getMe();
     } finally {
       this.isLoading = false;
     }
@@ -32,6 +32,7 @@ export class HomePage {
 
   async onSignOut() {
     await this.auth.doSignOut();
+    localStorage.removeItem('migajero:lastResult');
     this.router.navigateByUrl('/auth/sign-in');
   }
 

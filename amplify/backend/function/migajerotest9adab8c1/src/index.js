@@ -1,12 +1,12 @@
 /* Amplify Params - DO NOT EDIT
-  ENV
-  REGION
-  STORAGE_DYNAMOACF73435_ARN
-  STORAGE_DYNAMOACF73435_NAME
-  STORAGE_DYNAMOACF73435_STREAMARN
-  STORAGE_DYNAMOEB88E40C_ARN
-  STORAGE_DYNAMOEB88E40C_NAME
-  STORAGE_DYNAMOEB88E40C_STREAMARN
+	ENV
+	REGION
+	STORAGE_DYNAMOACF73435_ARN
+	STORAGE_DYNAMOACF73435_NAME
+	STORAGE_DYNAMOACF73435_STREAMARN
+	STORAGE_DYNAMOEB88E40C_ARN
+	STORAGE_DYNAMOEB88E40C_NAME
+	STORAGE_DYNAMOEB88E40C_STREAMARN
 Amplify Params - DO NOT EDIT */
 
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
@@ -55,6 +55,11 @@ function resolveProfilesTable() {
 function resolveResultsTable() {
   return process.env.STORAGE_DYNAMOEB88E40C_NAME || null; // migajeroresults-dev
 }
+function toInt(v, def) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return def;
+  return Math.max(1, Math.min(50, Math.floor(n))); // límite sano
+}
 
 const REGION = process.env.AWS_REGION || process.env.REGION;
 const ddb = DynamoDBDocumentClient.from(
@@ -72,9 +77,12 @@ exports.handler = async (event) => {
 
     const PROFILES_TABLE = resolveProfilesTable();
     const RESULTS_TABLE = resolveResultsTable();
-    console.log("TABLES", { PROFILES_TABLE, RESULTS_TABLE });
 
     if (!PROFILES_TABLE) return json(500, { message: "No PROFILES_TABLE" });
+
+    const qs = event?.queryStringParameters || {};
+    const only = (qs.only || "").toString();          // "last"
+    const limit = qs.limit ? toInt(qs.limit, 10) : 0; // 0 = no traer lista
 
     if (method === "GET") {
       const profileResp = await ddb.send(
@@ -82,22 +90,35 @@ exports.handler = async (event) => {
       );
 
       let lastResult = null;
+      let results = null;
+
       if (RESULTS_TABLE) {
-        const lastResp = await ddb.send(
+        // si pidieron limit -> traemos lista, si no -> solo last
+        const queryLimit = limit > 0 ? limit : 1;
+
+        const q = await ddb.send(
           new QueryCommand({
             TableName: RESULTS_TABLE,
             KeyConditionExpression: "userId = :u",
             ExpressionAttributeValues: { ":u": userId },
-            ScanIndexForward: false,
-            Limit: 1,
+            ScanIndexForward: false, // DESC por createdAt
+            Limit: queryLimit,
           })
         );
-        lastResult = lastResp.Items?.[0] || null;
+
+        const items = q.Items || [];
+        lastResult = items[0] || null;
+        if (limit > 0) results = items;
       }
 
+      // modo compacto: solo lastResult
+      if (only === "last") return json(200, { lastResult });
+
+      // modo normal
       return json(200, {
         profile: profileResp.Item?.profile ?? { fullName: null, age: null, gender: null },
         lastResult,
+        ...(results ? { results } : {}),
       });
     }
 

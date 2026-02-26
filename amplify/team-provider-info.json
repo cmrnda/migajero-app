@@ -23,14 +23,14 @@
         },
         "migajerotest2461556e": {
           "deploymentBucketName": "amplify-migajerotest-dev-fb6ee-deployment",
-          "s3Key": "amplify-builds/migajerotest2461556e-547779436c57674e6376-build.zip",
+          "s3Key": "amplify-builds/migajerotest2461556e-67636376334f5859342f-build.zip",
           "resultsTable": "migajeroresults",
           "bedrockModelId": "anthropic.claude-3-haiku-20240307-v1:0",
           "bedrockRegion": "us-east-1"
         },
         "migajerotest9adab8c1": {
           "deploymentBucketName": "amplify-migajerotest-dev-fb6ee-deployment",
-          "s3Key": "amplify-builds/migajerotest9adab8c1-4a64484c577658493957-build.zip",
+          "s3Key": "amplify-builds/migajerotest9adab8c1-695934574f4c796a714d-build.zip",
           "profilesTable": "migajeroprofiles",
           "resultsTable": "migajeroresults"
         }
