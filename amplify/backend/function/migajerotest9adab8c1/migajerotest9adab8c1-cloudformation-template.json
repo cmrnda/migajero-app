@@ -40,13 +40,13 @@
       "Type": "String",
       "Default": "storagedynamoacf73435StreamArn"
     },
+    "duoInviteSecret": {
+      "Type": "String"
+    },
     "profilesTable": {
       "Type": "String"
     },
     "resultsTable": {
-      "Type": "String"
-    },
-    "duoInviteSecret": {
       "Type": "String"
     }
   },
@@ -121,14 +121,14 @@
             "STORAGE_DYNAMOACF73435_STREAMARN": {
               "Ref": "storagedynamoacf73435StreamArn"
             },
+            "DUO_INVITE_SECRET": {
+              "Ref": "duoInviteSecret"
+            },
             "PROFILES_TABLE": {
               "Ref": "profilesTable"
             },
             "RESULTS_TABLE": {
               "Ref": "resultsTable"
-            },
-            "DUO_INVITE_SECRET": {
-              "Ref": "duoInviteSecret"
             }
           }
         },

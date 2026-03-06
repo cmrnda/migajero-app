@@ -1,12 +1,10 @@
 <div class="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-brand-50">
-  <!-- blobs -->
   <div class="pointer-events-none absolute inset-0">
     <div class="absolute -top-32 -left-24 h-80 w-80 rounded-full bg-brand-400/25 blur-3xl motion-safe:animate-pulse"></div>
     <div class="absolute -bottom-32 -right-24 h-96 w-96 rounded-full bg-brand-600/15 blur-3xl motion-safe:animate-pulse"></div>
     <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(124,90,237,0.10),transparent_55%)]"></div>
   </div>
 
-  <!-- header -->
   <header class="relative border-b border-slate-200/60 bg-white/70 backdrop-blur-xl">
     <div class="mx-auto max-w-6xl px-4 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div class="flex items-center gap-3 min-w-0">
@@ -22,8 +20,7 @@
       <div class="flex items-center gap-2 self-end sm:self-auto">
         <button
           type="button"
-          class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700
-                 transition hover:text-brand-700 hover:border-brand-300 focus:outline-none focus:ring-4 focus:ring-brand-100 active:scale-[0.99]"
+          class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:text-brand-700 hover:border-brand-300 focus:outline-none focus:ring-4 focus:ring-brand-100 active:scale-[0.99]"
           (click)="goProfile()"
         >
           <span class="material-symbols-rounded text-[20px]">person</span>
@@ -32,9 +29,7 @@
 
         <button
           type="button"
-          class="inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-semibold text-white
-                 bg-gradient-to-r from-brand-600 to-brand-500 shadow-lg shadow-brand-500/20
-                 transition hover:brightness-110 focus:outline-none focus:ring-4 focus:ring-brand-100 active:scale-[0.99]"
+          class="inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-brand-600 to-brand-500 shadow-lg shadow-brand-500/20 transition hover:brightness-110 focus:outline-none focus:ring-4 focus:ring-brand-100 active:scale-[0.99]"
           (click)="onSignOut()"
         >
           <span class="material-symbols-rounded text-[20px]">logout</span>
@@ -44,10 +39,8 @@
     </div>
   </header>
 
-  <!-- main -->
   <main class="relative mx-auto max-w-6xl px-4 py-8 sm:py-10">
     <div class="rounded-3xl bg-white/75 backdrop-blur-xl shadow-2xl ring-1 ring-slate-200 p-6 sm:p-8">
-      <!-- top intro -->
       <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div class="min-w-0">
           <div class="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 ring-1 ring-brand-200">
@@ -56,22 +49,24 @@
           </div>
 
           <h1 class="mt-4 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
-            Elige un modo
+            Elige tu modo
           </h1>
 
           <p class="mt-2 text-sm leading-relaxed text-slate-600">
-            Solitario está listo. Versus entra después.
+            Haz tu resultado solo o compáralo con otra persona en versus.
           </p>
 
-          <!-- tiny progress -->
           <div class="mt-4 flex flex-wrap items-center gap-2">
             <span class="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
               <span class="material-symbols-rounded text-[16px]">check_circle</span>
-              Solitario listo
+              Solo listo
             </span>
-            <span class="inline-flex items-center gap-2 rounded-full bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">
-              <span class="material-symbols-rounded text-[16px]">schedule</span>
-              Versus próximamente
+            <span
+              class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ring-1"
+              [ngClass]="duoReady ? 'bg-brand-50 text-brand-700 ring-brand-200' : 'bg-slate-50 text-slate-700 ring-slate-200'"
+            >
+              <span class="material-symbols-rounded text-[16px]">{{ duoReady ? 'groups' : 'schedule' }}</span>
+              {{ duoReady ? 'Versus listo' : 'Versus disponible tras tu resultado' }}
             </span>
           </div>
         </div>
@@ -82,21 +77,23 @@
         Cargando…
       </div>
 
-      <!-- profile warning -->
+      <div *ngIf="!isLoading && errorMsg" class="mt-5 rounded-2xl border border-rose-200 bg-rose-50 p-4">
+        <div class="font-semibold text-rose-900">Error</div>
+        <div class="mt-1 text-sm text-rose-800">{{ errorMsg }}</div>
+      </div>
+
       <div *ngIf="!isLoading && profileIncomplete" class="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4">
         <div class="flex items-start gap-3">
           <span class="material-symbols-rounded text-[22px] text-amber-900">warning</span>
           <div class="min-w-0">
             <div class="font-semibold text-amber-900">Completa tu perfil</div>
             <div class="text-amber-900/80 text-sm mt-1">
-              Nombre, edad y sexo ayudan a personalizar el resultado (sin hacerlo diagnóstico).
+              Nombre, edad y sexo ayudan a personalizar mejor tu resultado.
             </div>
 
             <button
               type="button"
-              class="mt-3 inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-semibold text-white
-                     bg-gradient-to-r from-brand-600 to-brand-500 shadow-lg shadow-brand-500/20
-                     transition hover:brightness-110 focus:outline-none focus:ring-4 focus:ring-brand-100 active:scale-[0.99]"
+              class="mt-3 inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-brand-600 to-brand-500 shadow-lg shadow-brand-500/20 transition hover:brightness-110 focus:outline-none focus:ring-4 focus:ring-brand-100 active:scale-[0.99]"
               (click)="goProfile()"
             >
               <span class="material-symbols-rounded text-[20px]">edit</span>
@@ -106,15 +103,30 @@
         </div>
       </div>
 
-      <!-- cards -->
+      <div *ngIf="!isLoading && hasLastResult" class="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div class="font-semibold text-emerald-900">Tu último resultado está guardado</div>
+            <div class="mt-1 text-sm text-emerald-800">
+              {{ me?.lastResult?.score }}% · {{ me?.lastResult?.level }}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="inline-flex items-center gap-2 rounded-2xl border border-emerald-200 bg-white px-4 py-2 text-sm font-semibold text-emerald-900 transition hover:brightness-105 focus:outline-none focus:ring-4 focus:ring-emerald-100 active:scale-[0.99]"
+            (click)="goSoloResult()"
+          >
+            Ver resultado
+          </button>
+        </div>
+      </div>
+
       <div class="mt-8 grid gap-4 sm:grid-cols-2">
-        <!-- SOLITARIO -->
         <button
           type="button"
-          class="group text-left rounded-3xl border border-slate-200 bg-white p-5 sm:p-6 transition
-                 hover:-translate-y-1 hover:shadow-xl hover:border-brand-300
-                 focus:outline-none focus:ring-4 focus:ring-brand-100"
-          (click)="startSolo()"
+          class="group text-left rounded-3xl border border-slate-200 bg-white p-5 sm:p-6 transition hover:-translate-y-1 hover:shadow-xl hover:border-brand-300 focus:outline-none focus:ring-4 focus:ring-brand-100"
+          (click)="goSolo()"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="min-w-0">
@@ -122,7 +134,7 @@
                 <span class="text-sm text-slate-500">Modo</span>
                 <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200">
                   <span class="material-symbols-rounded text-[14px]">bolt</span>
-                  Listo
+                  Activo
                 </span>
               </div>
               <div class="text-xl font-extrabold mt-1 text-slate-900">Solitario</div>
@@ -134,7 +146,7 @@
           </div>
 
           <p class="mt-2 text-sm text-slate-600">
-            Haces el test, obtienes tu resultado y lo compartes.
+            Haces el test, guardas tu resultado y lo compartes.
           </p>
 
           <div class="mt-4 flex items-center justify-between">
@@ -150,21 +162,21 @@
           </div>
         </button>
 
-        <!-- 1 VS 1 -->
         <button
           type="button"
-          class="group text-left rounded-3xl border border-slate-200 bg-white p-5 sm:p-6 transition opacity-95
-                 hover:-translate-y-1 hover:shadow-xl hover:border-brand-300
-                 focus:outline-none focus:ring-4 focus:ring-brand-100"
-          (click)="openComingSoon('VERSUS')"
+          class="group text-left rounded-3xl border border-slate-200 bg-white p-5 sm:p-6 transition hover:-translate-y-1 hover:shadow-xl hover:border-brand-300 focus:outline-none focus:ring-4 focus:ring-brand-100"
+          (click)="goVersus()"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="min-w-0">
               <div class="flex items-center gap-2">
                 <span class="text-sm text-slate-500">Modo</span>
-                <span class="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-700 ring-1 ring-slate-200">
-                  <span class="material-symbols-rounded text-[14px]">schedule</span>
-                  Próximamente
+                <span
+                  class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1"
+                  [ngClass]="duoReady ? 'bg-brand-50 text-brand-700 ring-brand-200' : 'bg-slate-50 text-slate-700 ring-slate-200'"
+                >
+                  <span class="material-symbols-rounded text-[14px]">{{ duoReady ? 'groups' : 'schedule' }}</span>
+                  {{ duoReady ? 'Listo' : 'Haz tu test primero' }}
                 </span>
               </div>
               <div class="text-xl font-extrabold mt-1 text-slate-900">1 vs 1</div>
@@ -176,17 +188,17 @@
           </div>
 
           <p class="mt-2 text-sm text-slate-600">
-            Duelo, ranking y comparación directa.
+            Genera tu link, invita a alguien y compara quién cayó más en el cuento.
           </p>
 
           <div class="mt-4 flex items-center justify-between">
             <div class="flex items-center gap-2 text-xs text-slate-500">
-              <span class="material-symbols-rounded text-[16px]">emoji_events</span>
-              Rankings + salas
+              <span class="material-symbols-rounded text-[16px]">link</span>
+              Link + comparación
             </div>
 
             <div class="inline-flex items-center gap-2 text-sm font-semibold text-brand-700">
-              Ver info
+              Abrir
               <span class="material-symbols-rounded text-[18px] transition group-hover:translate-x-0.5">arrow_forward</span>
             </div>
           </div>
@@ -198,39 +210,6 @@
           <span class="h-1.5 w-1.5 rounded-full bg-brand-500"></span>
           <span class="font-semibold text-brand-700">AWS CLOUD CLUBS UMSA</span>
         </span>
-      </div>
-    </div>
-
-    <!-- MODAL -->
-    <div *ngIf="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div class="absolute inset-0 bg-black/40" (click)="closeModal()"></div>
-
-      <div class="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl ring-1 ring-slate-200">
-        <div class="flex items-start gap-3">
-          <div class="h-11 w-11 rounded-2xl bg-brand-50 ring-1 ring-brand-200 grid place-items-center">
-            <span class="material-symbols-rounded text-[24px] text-brand-700">info</span>
-          </div>
-
-          <div class="min-w-0">
-            <div class="text-sm text-slate-500">Modo</div>
-            <div class="text-xl font-extrabold mt-1">Versus (1 vs 1)</div>
-            <p class="text-slate-600 mt-2">
-              Esto entra después de cerrar Solitario al 100%.
-            </p>
-          </div>
-        </div>
-
-        <div class="mt-5 flex justify-end">
-          <button
-            type="button"
-            class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700
-                   transition hover:text-brand-700 hover:border-brand-300 focus:outline-none focus:ring-4 focus:ring-brand-100 active:scale-[0.99]"
-            (click)="closeModal()"
-          >
-            <span class="material-symbols-rounded text-[18px]">done</span>
-            Ok
-          </button>
-        </div>
       </div>
     </div>
   </main>

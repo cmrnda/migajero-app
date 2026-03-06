@@ -40,13 +40,16 @@
       "Type": "String",
       "Default": "storagedynamoacf73435StreamArn"
     },
+    "duoInviteSecret": {
+      "Type": "String"
+    },
     "resultsTable": {
       "Type": "String"
     },
-    "bedrockModelId": {
+    "bedrockRegion": {
       "Type": "String"
     },
-    "bedrockRegion": {
+    "bedrockModelId": {
       "Type": "String"
     }
   },
@@ -121,14 +124,17 @@
             "STORAGE_DYNAMOACF73435_STREAMARN": {
               "Ref": "storagedynamoacf73435StreamArn"
             },
+            "DUO_INVITE_SECRET": {
+              "Ref": "duoInviteSecret"
+            },
             "RESULTS_TABLE": {
               "Ref": "resultsTable"
             },
-            "BEDROCK_MODEL_ID": {
-              "Ref": "bedrockModelId"
-            },
             "BEDROCK_REGION": {
               "Ref": "bedrockRegion"
+            },
+            "BEDROCK_MODEL_ID": {
+              "Ref": "bedrockModelId"
             }
           }
         },

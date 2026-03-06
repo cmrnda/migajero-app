@@ -5,27 +5,42 @@ import { soloGateGuard } from './core/guards/solo-gate.guard';
 export const routes: Routes = [
   {
     path: 'auth',
-    loadChildren: () => import('./features/auth/auth.routes').then(m => m.AUTH_ROUTES)
+    loadChildren: () => import('./features/auth/auth.routes').then((m) => m.AUTH_ROUTES)
   },
   {
     path: '',
     canActivate: [authGuard],
-    loadComponent: () => import('./features/home/home.page').then(m => m.HomePage)
+    loadComponent: () => import('./features/home/home.page').then((m) => m.HomePage)
   },
   {
     path: 'me',
     canActivate: [authGuard],
-    loadComponent: () => import('./features/me/me.page').then(m => m.MePage)
+    loadComponent: () => import('./features/me/me.page').then((m) => m.MePage)
   },
   {
     path: 'solo/quiz',
     canActivate: [authGuard, soloGateGuard],
-    loadComponent: () => import('./features/solo/solo-quiz.page').then(m => m.SoloQuizPage)
+    loadComponent: () => import('./features/solo/solo-quiz.page').then((m) => m.SoloQuizPage)
   },
   {
     path: 'solo/result',
     canActivate: [authGuard],
-    loadComponent: () => import('./features/solo/solo-result.page').then(m => m.SoloResultPage)
+    loadComponent: () => import('./features/solo/solo-result.page').then((m) => m.SoloResultPage)
+  },
+  {
+    path: 'versus',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/versus/versus-lobby.page').then((m) => m.VersusLobbyPage)
+  },
+  {
+    path: 'versus/join',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/versus/versus-join.page').then((m) => m.VersusJoinPage)
+  },
+  {
+    path: 'versus/result',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/versus/versus-result.page').then((m) => m.VersusResultPage)
   },
   {
     path: 'quiz',

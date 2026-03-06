@@ -19,21 +19,22 @@
       "function": {
         "migajerotestba4f68bc": {
           "deploymentBucketName": "amplify-migajerotest-dev-fb6ee-deployment",
-          "s3Key": "amplify-builds/migajerotestba4f68bc-426e2f32646b64686138-build.zip"
+          "s3Key": "amplify-builds/migajerotestba4f68bc-566b744e4c4f6d374772-build.zip"
         },
         "migajerotest2461556e": {
           "deploymentBucketName": "amplify-migajerotest-dev-fb6ee-deployment",
-          "s3Key": "amplify-builds/migajerotest2461556e-5a34574b6a794e725163-build.zip",
-          "resultsTable": "migajeroresults",
-          "bedrockModelId": "anthropic.claude-3-haiku-20240307-v1:0",
-          "bedrockRegion": "us-east-1"
+          "s3Key": "amplify-builds/migajerotest2461556e-65753342734d506b636e-build.zip",
+          "duoInviteSecret": "awsumsa2026",
+          "resultsTable": "migajeroresults-dev",
+          "bedrockRegion": "us-east-1",
+          "bedrockModelId": "anthropic.claude-3-5-haiku-20241022-v1:0"
         },
         "migajerotest9adab8c1": {
           "deploymentBucketName": "amplify-migajerotest-dev-fb6ee-deployment",
-          "s3Key": "amplify-builds/migajerotest9adab8c1-6537442f3832764b6674-build.zip",
-          "profilesTable": "migajeroprofiles",
-          "resultsTable": "migajeroresults",
-          "duoInviteSecret": "awsumsa2026"
+          "s3Key": "amplify-builds/migajerotest9adab8c1-666d677254594d6a722f-build.zip",
+          "duoInviteSecret": "awsumsa2026",
+          "profilesTable": "migajeroprofiles-dev",
+          "resultsTable": "migajeroresults-dev"
         }
       },
       "api": {

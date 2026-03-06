@@ -2,9 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthStore } from '../auth/auth.store';
-import { getMe } from '../../core/api/migajero-api';
-
-type ComingSoonMode = 'VERSUS' | 'GRUPAL';
+import { getMe, MeResponse } from '../../core/api/migajero-api';
 
 @Component({
   standalone: true,
@@ -15,16 +13,18 @@ export class HomePage {
   private readonly auth = inject(AuthStore);
   private readonly router = inject(Router);
 
-  me: any = null;
+  me: MeResponse | null = null;
   isLoading = false;
-
-  showModal = false;
-  comingSoonMode: ComingSoonMode | null = null;
+  errorMsg: string | null = null;
 
   async ngOnInit() {
     this.isLoading = true;
+    this.errorMsg = null;
+
     try {
       this.me = await getMe();
+    } catch (error: any) {
+      this.errorMsg = error?.message ?? 'No se pudo cargar el dashboard';
     } finally {
       this.isLoading = false;
     }
@@ -33,6 +33,7 @@ export class HomePage {
   async onSignOut() {
     await this.auth.doSignOut();
     localStorage.removeItem('migajero:lastResult');
+    localStorage.removeItem('migajero:lastDuoResult');
     this.router.navigateByUrl('/auth/sign-in');
   }
 
@@ -40,23 +41,29 @@ export class HomePage {
     this.router.navigateByUrl('/me');
   }
 
-  startSolo() {
+  goSolo() {
     this.router.navigateByUrl('/solo/quiz');
   }
 
-  openComingSoon(mode: ComingSoonMode) {
-    this.comingSoonMode = mode;
-    this.showModal = true;
+  goSoloResult() {
+    this.router.navigateByUrl('/solo/result');
   }
 
-  closeModal() {
-    this.showModal = false;
-    this.comingSoonMode = null;
+  goVersus() {
+    this.router.navigateByUrl('/versus');
   }
 
   get profileIncomplete(): boolean {
-    const p = this.me?.profile;
-    if (!p) return true;
-    return !p.fullName || !p.age || !p.gender;
+    const profile = this.me?.profile;
+    if (!profile) return true;
+    return !profile.fullName || !profile.age || !profile.gender;
+  }
+
+  get hasLastResult(): boolean {
+    return !!this.me?.lastResult;
+  }
+
+  get duoReady(): boolean {
+    return !!this.me?.lastResult && !!this.me?.duoInviteToken;
   }
 }

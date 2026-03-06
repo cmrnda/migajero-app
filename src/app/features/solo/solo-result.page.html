@@ -6,44 +6,38 @@
   </div>
 
   <header class="relative border-b border-slate-200/60 bg-white/70 backdrop-blur-xl">
-    <div class="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-4">
-      <div class="flex min-w-0 items-center gap-3">
+    <div class="mx-auto max-w-3xl px-4 py-4 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0">
         <div class="h-10 w-10 rounded-2xl bg-gradient-to-br from-brand-600 to-brand-500 shadow-lg shadow-brand-500/20"></div>
         <div class="min-w-0">
-          <div class="truncate font-extrabold text-slate-900">Resultado</div>
-          <div class="truncate text-xs text-slate-500">Listo para compartir</div>
+          <div class="font-extrabold text-slate-900 truncate">Resultado</div>
+          <div class="text-xs text-slate-500 truncate">Listo para compartir</div>
         </div>
       </div>
 
-      <div class="flex items-center gap-2">
-        <span class="inline-flex items-center rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200">
-          v{{ appVersion }}
-        </span>
-
-        <a
-          routerLink="/"
-          class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition duration-200 ease-out hover:border-brand-300 hover:text-brand-700 active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-brand-100"
-        >
-          Dashboard
-        </a>
-      </div>
+      <a
+        routerLink="/"
+        class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition duration-200 ease-out hover:text-brand-700 hover:border-brand-300 active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-brand-100"
+      >
+        Dashboard
+      </a>
     </div>
   </header>
 
   <main class="relative mx-auto max-w-3xl px-4 py-8">
     <div
-      *ngIf="isLoading"
-      class="rounded-3xl bg-white/75 p-6 text-slate-600 shadow-2xl ring-1 ring-slate-200 backdrop-blur-xl sm:p-8"
+      *ngIf="loading"
+      class="rounded-3xl bg-white/75 backdrop-blur-xl shadow-2xl ring-1 ring-slate-200 p-6 sm:p-8 text-slate-600"
     >
       <div class="flex items-center gap-2">
-        <span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-transparent"></span>
-        Cargando tu resultado…
+        <span class="inline-block h-4 w-4 rounded-full border-2 border-slate-300 border-t-transparent animate-spin"></span>
+        Cargando tu último resultado…
       </div>
     </div>
 
-    <div *ngIf="!isLoading && errorMessage" class="rounded-3xl border border-rose-200 bg-rose-50 p-6">
+    <div *ngIf="!loading && errorMsg" class="rounded-3xl border border-rose-200 bg-rose-50 p-6">
       <div class="font-bold text-rose-900">Error</div>
-      <div class="mt-1 break-words text-sm text-rose-900/80">{{ errorMessage }}</div>
+      <div class="text-rose-900/80 mt-1 text-sm break-words">{{ errorMsg }}</div>
 
       <button
         type="button"
@@ -54,12 +48,12 @@
       </button>
     </div>
 
-    <div *ngIf="!isLoading && result" class="space-y-4">
+    <div *ngIf="!loading && result" class="space-y-4">
       <div
         id="resultCard"
         class="relative overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200"
       >
-        <div class="pointer-events-none absolute inset-0">
+        <div class="absolute inset-0 pointer-events-none">
           <div class="absolute -top-24 -left-24 h-64 w-64 rounded-full bg-brand-400/20 blur-3xl"></div>
           <div class="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-brand-600/15 blur-3xl"></div>
           <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(124,90,237,0.10),transparent_55%)]"></div>
@@ -68,7 +62,7 @@
             [src]="watermarkSrc"
             alt=""
             crossorigin="anonymous"
-            class="absolute -bottom-10 -left-10 w-64 rotate-[-8deg] opacity-10"
+            class="absolute -bottom-10 -left-10 w-64 opacity-10 rotate-[-8deg]"
           />
         </div>
 
@@ -81,22 +75,22 @@
 
               <div class="mt-3 text-sm text-slate-500">Tu resultado</div>
 
-              <div class="mt-1 text-5xl font-black tracking-tight text-brand-700 sm:text-6xl">
+              <div class="mt-1 text-5xl sm:text-6xl font-black tracking-tight text-brand-700">
                 {{ result.score }}%
               </div>
 
-              <div class="mt-2 text-xl font-extrabold text-slate-900 sm:text-2xl">
+              <div class="mt-2 text-xl sm:text-2xl font-extrabold text-slate-900">
                 {{ result.level }}
               </div>
             </div>
 
-            <div class="relative shrink-0">
+            <div class="shrink-0 relative">
               <div class="absolute -inset-4 rounded-2xl bg-brand-500/10 blur-xl"></div>
               <img
                 [src]="stickerSrc"
                 alt="Migajera"
                 crossorigin="anonymous"
-                class="relative h-36 w-36 rotate-[4deg] object-contain drop-shadow-xl sm:h-44 sm:w-44"
+                class="relative h-36 w-36 sm:h-44 sm:w-44 object-contain drop-shadow-xl rotate-[4deg]"
               />
             </div>
           </div>
@@ -107,7 +101,7 @@
               <span class="font-semibold text-slate-600">{{ result.score }}%</span>
             </div>
 
-            <div class="mt-2 h-2.5 w-full overflow-hidden rounded-xl bg-slate-100 ring-1 ring-slate-200">
+            <div class="mt-2 h-2.5 w-full rounded-xl bg-slate-100 ring-1 ring-slate-200 overflow-hidden">
               <div
                 class="h-full rounded-xl bg-gradient-to-r from-brand-600 to-brand-500"
                 [style.width.%]="result.score"
@@ -115,9 +109,9 @@
             </div>
           </div>
 
-          <div class="mt-5 flex flex-wrap gap-2" *ngIf="visibleTags.length">
+          <div class="mt-5 flex flex-wrap gap-2" *ngIf="safeTags.length">
             <span
-              *ngFor="let tag of visibleTags"
+              *ngFor="let tag of safeTags"
               class="inline-flex items-center gap-2 rounded-xl bg-white/80 px-3 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200"
             >
               <span class="h-1.5 w-1.5 rounded-full bg-brand-500"></span>
@@ -125,27 +119,20 @@
             </span>
           </div>
 
-          <div class="mt-5 flex flex-wrap gap-2" *ngIf="!visibleTags.length">
-            <span class="inline-flex items-center gap-2 rounded-xl bg-white/80 px-3 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">
-              <span class="h-1.5 w-1.5 rounded-full bg-brand-500"></span>
-              Sin patrones destacados
-            </span>
-          </div>
-
-          <div class="relative mt-6">
+          <div class="mt-6 relative">
             <div class="absolute -top-2 left-6 h-4 w-4 rotate-45 bg-slate-50 ring-1 ring-slate-200"></div>
-            <div class="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200">
-              <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <div class="rounded-xl bg-slate-50 ring-1 ring-slate-200 p-4">
+              <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide">
                 Comentario
               </div>
-              <div class="mt-2 whitespace-pre-line text-sm leading-relaxed text-slate-800">
-                {{ result.comment || 'No hay comentario disponible por ahora.' }}
+              <div class="mt-2 text-sm text-slate-800 leading-relaxed whitespace-pre-line">
+                {{ result.comment }}
               </div>
             </div>
           </div>
 
           <div class="mt-6 flex items-center justify-between gap-3 text-xs text-slate-500">
-            <span>Es solo entretenimiento · No es diagnóstico</span>
+            <span>Solo entretenimiento · No es diagnóstico</span>
 
             <span class="inline-flex items-center gap-2 font-semibold text-brand-700">
               <span class="h-1.5 w-1.5 rounded-full bg-brand-500"></span>
@@ -155,10 +142,10 @@
         </div>
       </div>
 
-      <div class="flex flex-col gap-2 sm:flex-row">
+      <div class="flex flex-col sm:flex-row gap-2">
         <button
           type="button"
-          class="sm:flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-brand-600 to-brand-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-500/20 transition duration-200 ease-out hover:brightness-110 active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-brand-100"
+          class="sm:flex-1 inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-brand-600 to-brand-500 shadow-lg shadow-brand-500/20 transition duration-200 ease-out hover:brightness-110 active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-brand-100"
           (click)="shareImage()"
         >
           Compartir imagen
@@ -166,20 +153,30 @@
 
         <button
           type="button"
-          class="sm:flex-1 inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition duration-200 ease-out hover:border-brand-300 hover:text-brand-700 active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-brand-100"
+          class="sm:flex-1 inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition duration-200 ease-out hover:text-brand-700 hover:border-brand-300 active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-brand-100"
           (click)="downloadImage()"
         >
           Descargar
         </button>
       </div>
 
-      <button
-        type="button"
-        class="w-full inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition duration-200 ease-out hover:border-brand-300 hover:text-brand-700 active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-brand-100"
-        (click)="redoTest()"
-      >
-        Rehacer test
-      </button>
+      <div class="grid gap-2 sm:grid-cols-2">
+        <button
+          type="button"
+          class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition duration-200 ease-out hover:text-brand-700 hover:border-brand-300 active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-brand-100"
+          (click)="redoTest()"
+        >
+          Rehacer test
+        </button>
+
+        <button
+          type="button"
+          class="inline-flex items-center justify-center gap-2 rounded-2xl border border-brand-200 bg-brand-50 px-5 py-3 text-sm font-semibold text-brand-700 transition duration-200 ease-out hover:brightness-105 active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-brand-100"
+          (click)="goVersus()"
+        >
+          Ir a versus
+        </button>
+      </div>
     </div>
   </main>
 </div>

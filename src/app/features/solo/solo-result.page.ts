@@ -1,29 +1,26 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import * as htmlToImage from 'html-to-image';
-import { APP_VERSION } from '../../core/config/app-info';
-import { QuizResult, getMyLastResult } from '../../core/api/migajero-api';
+import { getMyLastResult, SoloResult } from '../../core/api/migajero-api';
 
-const cacheKey = 'migajero:lastResult';
+const CACHE_KEY = 'migajero:lastResult';
 
-function readResultCache(): QuizResult | null {
+function readCache(): SoloResult | null {
   try {
-    const raw = localStorage.getItem(cacheKey);
+    const raw = localStorage.getItem(CACHE_KEY);
     if (!raw) return null;
-
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed.score !== 'number') return null;
-
-    return parsed;
+    const obj = JSON.parse(raw);
+    if (!obj || typeof obj.score !== 'number') return null;
+    return obj as SoloResult;
   } catch {
     return null;
   }
 }
 
-function writeResultCache(result: QuizResult) {
+function writeCache(result: SoloResult) {
   try {
-    localStorage.setItem(cacheKey, JSON.stringify(result));
+    localStorage.setItem(CACHE_KEY, JSON.stringify(result));
   } catch {}
 }
 
@@ -32,50 +29,45 @@ function writeResultCache(result: QuizResult) {
   imports: [CommonModule, RouterModule],
   templateUrl: './solo-result.page.html'
 })
-export class SoloResultPage implements OnInit {
+export class SoloResultPage {
   private readonly router = inject(Router);
 
-  protected readonly appVersion = APP_VERSION;
-
-  protected result: QuizResult | null = (history.state as any)?.result ?? null;
-  protected isLoading = false;
-  protected errorMessage: string | null = null;
+  result: SoloResult | null = (history.state as any)?.result ?? null;
+  loading = false;
+  errorMsg: string | null = null;
 
   async ngOnInit() {
     if (this.result) {
-      writeResultCache(this.result);
+      writeCache(this.result);
       return;
     }
 
-    const cached = readResultCache();
+    const cached = readCache();
     if (cached) {
       this.result = cached;
       return;
     }
 
-    this.isLoading = true;
-
+    this.loading = true;
     try {
-      const lastResult = await getMyLastResult();
-
-      if (!lastResult) {
+      const last = await getMyLastResult();
+      if (last) {
+        this.result = last;
+        writeCache(last);
+      } else {
         this.router.navigateByUrl('/solo/quiz?force=1');
-        return;
       }
-
-      this.result = lastResult;
-      writeResultCache(lastResult);
     } catch (error: any) {
-      this.errorMessage = error?.message ?? 'No se pudo cargar tu resultado.';
+      this.errorMsg = error?.message ?? 'Error cargando tu último resultado';
     } finally {
-      this.isLoading = false;
+      this.loading = false;
     }
   }
 
-  private async makeBlob() {
+  private async makeBlob(): Promise<Blob> {
     const node = document.getElementById('resultCard');
     if (!node) {
-      throw new Error('No se encontró la tarjeta del resultado.');
+      throw new Error('No resultCard');
     }
 
     await this.ensureCardReady(node);
@@ -88,70 +80,68 @@ export class SoloResultPage implements OnInit {
     });
 
     if (!blob) {
-      throw new Error('No se pudo generar la imagen.');
+      throw new Error('No se pudo generar imagen');
     }
 
     return blob;
   }
 
-  protected async shareImage() {
+  async shareImage() {
     try {
-      this.errorMessage = null;
-
+      this.errorMsg = null;
       const blob = await this.makeBlob();
       const file = new File([blob], 'migajero.png', { type: 'image/png' });
-      const browser = navigator as Navigator & {
-        canShare?: (data?: ShareData) => boolean;
-      };
 
-      if (browser.canShare?.({ files: [file] }) && browser.share) {
-        await browser.share({
+      const nav: any = navigator;
+      if (nav.canShare?.({ files: [file] }) && nav.share) {
+        await nav.share({
           files: [file],
           title: 'Mi resultado',
-          text: 'Es solo entretenimiento 😌'
+          text: 'Solo entretenimiento 😌'
         });
         return;
       }
 
       await this.downloadImage();
     } catch (error: any) {
-      this.errorMessage = error?.message ?? 'No se pudo compartir la imagen.';
+      this.errorMsg = error?.message ?? 'No se pudo compartir la imagen';
     }
   }
 
-  protected async downloadImage() {
+  async downloadImage() {
     try {
-      this.errorMessage = null;
-
+      this.errorMsg = null;
       const blob = await this.makeBlob();
       const url = URL.createObjectURL(blob);
-      const anchor = document.createElement('a');
-
-      anchor.href = url;
-      anchor.download = 'migajero.png';
-      anchor.click();
-
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'migajero.png';
+      a.click();
       URL.revokeObjectURL(url);
     } catch (error: any) {
-      this.errorMessage = error?.message ?? 'No se pudo descargar la imagen.';
+      this.errorMsg = error?.message ?? 'No se pudo descargar la imagen';
     }
   }
 
-  protected redoTest() {
+  redoTest() {
     this.router.navigateByUrl('/solo/quiz?force=1');
   }
 
-  protected get visibleTags() {
-    return Array.isArray(this.result?.tags)
-      ? this.result!.tags.filter((tag) => !!String(tag).trim())
-      : [];
+  goVersus() {
+    this.router.navigateByUrl('/versus');
   }
 
-  protected get watermarkSrc() {
+  get safeTags(): string[] {
+    return (this.result?.tags ?? [])
+      .map((tag) => String(tag ?? '').trim())
+      .filter(Boolean);
+  }
+
+  get watermarkSrc(): string {
     return 'assets/images/migajera_09_grupo.png';
   }
 
-  protected get stickerSrc() {
+  get stickerSrc(): string {
     const score = Number(this.result?.score ?? 0);
 
     if (score >= 90) return 'assets/images/migajera_08_pulgar_arriba.png';
@@ -163,21 +153,23 @@ export class SoloResultPage implements OnInit {
   }
 
   private async ensureCardReady(node: HTMLElement) {
-    const images = Array.from(node.querySelectorAll('img')) as HTMLImageElement[];
+    const imgs = Array.from(node.querySelectorAll('img')) as HTMLImageElement[];
 
     await Promise.all(
-      images.map((image) => {
-        if (image.complete && image.naturalWidth > 0) {
+      imgs.map((img) => {
+        if (img.complete && img.naturalWidth > 0) {
           return Promise.resolve();
         }
 
         return new Promise<void>((resolve) => {
-          image.onload = () => resolve();
-          image.onerror = () => resolve();
+          img.onload = () => resolve();
+          img.onerror = () => resolve();
         });
       })
     );
 
-    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+    );
   }
 }

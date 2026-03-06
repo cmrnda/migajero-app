@@ -1,0 +1,43 @@
+<div class="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-brand-50">
+  <div class="pointer-events-none absolute inset-0">
+    <div class="absolute -top-32 -left-24 h-80 w-80 rounded-full bg-brand-400/25 blur-3xl motion-safe:animate-pulse"></div>
+    <div class="absolute -bottom-32 -right-24 h-96 w-96 rounded-full bg-brand-600/15 blur-3xl motion-safe:animate-pulse"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(124,90,237,0.10),transparent_55%)]"></div>
+  </div>
+
+  <main class="relative mx-auto max-w-3xl px-4 py-10">
+    <div *ngIf="isLoading || isComparing" class="rounded-3xl bg-white/75 p-6 text-slate-600 shadow-2xl ring-1 ring-slate-200 backdrop-blur-xl">
+      <div class="flex items-center gap-2">
+        <span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-transparent"></span>
+        {{ isComparing ? 'Comparando resultados…' : 'Preparando el versus…' }}
+      </div>
+    </div>
+
+    <div *ngIf="!isLoading && errorMessage" class="rounded-3xl border border-rose-200 bg-rose-50 p-6">
+      <div class="font-bold text-rose-900">Ups</div>
+      <div class="mt-1 text-sm text-rose-900/80">{{ errorMessage }}</div>
+
+      <a
+        routerLink="/versus"
+        class="mt-4 inline-flex items-center gap-2 rounded-2xl border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-900 transition hover:brightness-105 active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-rose-100"
+      >
+        Ir a versus
+      </a>
+    </div>
+
+    <div *ngIf="!isLoading && needsQuiz" class="rounded-3xl bg-white/75 p-6 shadow-2xl ring-1 ring-slate-200 backdrop-blur-xl">
+      <div class="text-xl font-extrabold text-slate-900">Te falta tu test</div>
+      <div class="mt-2 text-sm text-slate-600">
+        Para entrar al versus primero necesitas completar tu resultado individual.
+      </div>
+
+      <button
+        type="button"
+        class="mt-5 inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-brand-600 to-brand-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-500/20 transition duration-200 ease-out hover:brightness-110 active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-brand-100"
+        (click)="goToQuiz()"
+      >
+        Hacer mi test
+      </button>
+    </div>
+  </main>
+</div>

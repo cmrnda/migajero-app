@@ -167,6 +167,14 @@
         }
       ]
     },
+    "AMPLIFY_function_migajerotest2461556e_duoInviteSecret": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "migajerotest2461556e"
+        }
+      ]
+    },
     "AMPLIFY_function_migajerotest2461556e_resultsTable": {
       "usedBy": [
         {

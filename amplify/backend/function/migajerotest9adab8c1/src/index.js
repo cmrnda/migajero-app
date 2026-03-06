@@ -1,3 +1,15 @@
+/* Amplify Params - DO NOT EDIT
+	ENV
+	REGION
+	STORAGE_DYNAMOACF73435_ARN
+	STORAGE_DYNAMOACF73435_NAME
+	STORAGE_DYNAMOACF73435_STREAMARN
+	STORAGE_DYNAMOEB88E40C_ARN
+	STORAGE_DYNAMOEB88E40C_NAME
+	STORAGE_DYNAMOEB88E40C_STREAMARN
+Amplify Params - DO NOT EDIT */
+
+const crypto = require("crypto");
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const {
   DynamoDBDocumentClient,
@@ -59,11 +71,29 @@ function parseBody(event) {
 }
 
 function getProfilesTable() {
-  return process.env.STORAGE_DYNAMOACF73435_NAME || null;
+  return (
+    process.env.STORAGE_DYNAMOACF73435_NAME ||
+    process.env.PROFILES_TABLE ||
+    null
+  );
 }
 
 function getResultsTable() {
-  return process.env.STORAGE_DYNAMOEB88E40C_NAME || null;
+  return (
+    process.env.STORAGE_DYNAMOEB88E40C_NAME ||
+    process.env.RESULTS_TABLE ||
+    null
+  );
+}
+
+function getInviteSecret() {
+  return String(process.env.DUO_INVITE_SECRET || "").trim();
+}
+
+function getInviteTtlHours() {
+  const raw = Number(process.env.DUO_INVITE_TTL_HOURS || 24);
+  if (!Number.isFinite(raw)) return 24;
+  return Math.max(1, Math.min(168, Math.floor(raw)));
 }
 
 function toSafeLimit(value, fallback = 10) {
@@ -130,6 +160,7 @@ function normalizeStoredResult(item) {
     userId: item.userId ?? null,
     createdAt: item.createdAt ?? null,
     mode: item.mode ?? null,
+    quizVersion: item.quizVersion ?? null,
     score: Number.isFinite(Number(item.score)) ? Number(item.score) : 0,
     level: item.level ?? null,
     rawTags: Array.isArray(item.rawTags) ? item.rawTags : [],
@@ -137,6 +168,51 @@ function normalizeStoredResult(item) {
     comment: item.comment ?? null,
     profile: item.profile ?? null,
   };
+}
+
+function createInviteToken(result) {
+  const secret = getInviteSecret();
+  if (!secret || !result?.userId || !result?.createdAt) {
+    return null;
+  }
+
+  const payload = {
+    v: 1,
+    u: result.userId,
+    c: result.createdAt,
+    exp: Date.now() + getInviteTtlHours() * 60 * 60 * 1000,
+  };
+
+  const encodedPayload = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  const signature = crypto
+    .createHmac("sha256", secret)
+    .update(encodedPayload)
+    .digest("base64url");
+
+  return `${encodedPayload}.${signature}`;
+}
+
+async function readLatestSoloResults(resultsTable, userId, requestedLimit = 1) {
+  const internalLimit = Math.max(10, requestedLimit + 5);
+
+  const response = await ddb.send(
+    new QueryCommand({
+      TableName: resultsTable,
+      KeyConditionExpression: "userId = :userId",
+      ExpressionAttributeValues: {
+        ":userId": userId,
+      },
+      ScanIndexForward: false,
+      Limit: internalLimit,
+    })
+  );
+
+  const items = Array.isArray(response.Items) ? response.Items : [];
+
+  return items
+    .filter((item) => item?.mode !== "DUO")
+    .map(normalizeStoredResult)
+    .slice(0, requestedLimit);
 }
 
 exports.handler = async (event) => {
@@ -173,40 +249,31 @@ exports.handler = async (event) => {
 
       let lastResult = null;
       let results = null;
+      let duoInviteToken = null;
 
       if (resultsTable) {
-        const queryLimit = limit > 0 ? limit : 1;
+        const requestedLimit = limit > 0 ? limit : 1;
+        const soloResults = await readLatestSoloResults(resultsTable, userId, requestedLimit);
 
-        const resultsResponse = await ddb.send(
-          new QueryCommand({
-            TableName: resultsTable,
-            KeyConditionExpression: "userId = :userId",
-            ExpressionAttributeValues: {
-              ":userId": userId,
-            },
-            ScanIndexForward: false,
-            Limit: queryLimit,
-          })
-        );
-
-        const items = Array.isArray(resultsResponse.Items)
-          ? resultsResponse.Items.map(normalizeStoredResult)
-          : [];
-
-        lastResult = items[0] || null;
+        lastResult = soloResults[0] || null;
 
         if (limit > 0) {
-          results = items;
+          results = soloResults;
+        }
+
+        if (lastResult) {
+          duoInviteToken = createInviteToken(lastResult);
         }
       }
 
       if (only === "last") {
-        return json(200, { lastResult });
+        return json(200, { lastResult, duoInviteToken });
       }
 
       return json(200, {
         profile: normalizeStoredProfile(profileResponse.Item?.profile),
         lastResult,
+        duoInviteToken,
         ...(results ? { results } : {}),
       });
     }

@@ -18,16 +18,16 @@
   },
   "environmentVariableList": [
     {
+      "cloudFormationParameterName": "duoInviteSecret",
+      "environmentVariableName": "DUO_INVITE_SECRET"
+    },
+    {
       "cloudFormationParameterName": "profilesTable",
       "environmentVariableName": "PROFILES_TABLE"
     },
     {
       "cloudFormationParameterName": "resultsTable",
       "environmentVariableName": "RESULTS_TABLE"
-    },
-    {
-      "cloudFormationParameterName": "duoInviteSecret",
-      "environmentVariableName": "DUO_INVITE_SECRET"
     }
   ]
 }

@@ -7,143 +7,108 @@ const headers = {
 
 function buildQuizDefinition() {
   return {
-    version: "v2",
+    version: "v3",
     title: "Test Migajero",
     disclaimer: "Es solo entretenimiento. No reemplaza ayuda profesional ni es diagnóstico.",
     questions: [
       {
         id: "q1",
-        text: "Te responden con un “jajaja” y nada más. Tú:",
+        text: "Te responde con sticker, corazoncito o un “jajaja” y desaparece. Tú:",
         options: [
-          { id: "a", text: "Me basta, al menos respondió." },
-          { id: "b", text: "Respondo tranqui y sigo a lo mío." },
-          { id: "c", text: "No respondo. Tengo mejores cosas que hacer." },
+          { id: "a", text: "Yo ya me ilusioné, algo querrá pues.", score: 10, tags: ["breadcrumbing", "hope"] },
+          { id: "b", text: "Le sigo el jueguito, a ver si ahora sí.", score: 7, tags: ["ambiguity", "hope"] },
+          { id: "c", text: "Respondo normal, pero sin montar película.", score: 3, tags: ["boundaries"] },
+          { id: "d", text: "Sticker no es plan. Next, hija.", score: 0, tags: ["selfWorth", "boundaries"] },
         ],
       },
       {
         id: "q2",
-        text: "Te dicen “no quiero nada serio” pero te tratan como pareja. Tú:",
+        text: "Te dice “no quiero nada serio”, pero se pone celos@ si te ve con alguien. Tú:",
         options: [
-          { id: "a", text: "Sigo ahí, capaz cambia." },
-          { id: "b", text: "Pregunto directo qué está pasando." },
-          { id: "c", text: "Sin claridad no me quedo." },
+          { id: "a", text: "Capaz sí siente algo, solo le da miedo.", score: 10, tags: ["hope", "ambiguity"] },
+          { id: "b", text: "Me confunde, pero me quedo por si cambia.", score: 7, tags: ["ambiguity"] },
+          { id: "c", text: "Le pido claridad, sin novela.", score: 3, tags: ["boundaries"] },
+          { id: "d", text: "Si quiere beneficios sin título, conmigo no va.", score: 0, tags: ["selfWorth", "boundaries"] },
         ],
       },
       {
         id: "q3",
-        text: "Te cancelan a última hora y te dicen “ya será” sin fecha. Tú:",
+        text: "Te cancela salida con “se me cruzó un tema” y luego sube historias de paseo. Tú:",
         options: [
-          { id: "a", text: "Todo bien, yo entiendo… otra vez." },
-          { id: "b", text: "Ok, pero tú propones día y hora." },
-          { id: "c", text: "Perfecto. Yo también cancelé mi interés." },
+          { id: "a", text: "Le creo igual, pobrecit@ capaz sí estaba full.", score: 10, tags: ["breadcrumbing", "ghostingTolerance"] },
+          { id: "b", text: "Me hago la loca, pero sigo disponible.", score: 7, tags: ["planB", "hope"] },
+          { id: "c", text: "Le digo de una que eso no me cuadra.", score: 3, tags: ["boundaries"] },
+          { id: "d", text: "Listo, me ahorró tiempo. Chau nomás.", score: 0, tags: ["selfWorth"] },
         ],
       },
       {
         id: "q4",
-        text: "Solo te escriben de noche con “¿qué haces?”. Tú:",
+        text: "Solo te escribe de noche: “tas despiert@?”. Tú:",
         options: [
-          { id: "a", text: "Estoy libre, ya pues… caigo." },
-          { id: "b", text: "Respondo, pero sin regalarme." },
-          { id: "c", text: "Modo avión. Que hablen de día." },
+          { id: "a", text: "Sí pues, siempre estoy para esa persona.", score: 10, tags: ["nightShift", "breadcrumbing"] },
+          { id: "b", text: "Respondo, aunque ya sé por dónde va.", score: 7, tags: ["nightShift", "ambiguity"] },
+          { id: "c", text: "Contesto al día siguiente, tranqui.", score: 3, tags: ["boundaries"] },
+          { id: "d", text: "Mi paz mental duerme temprano. Fin.", score: 0, tags: ["selfWorth", "boundaries"] },
         ],
       },
       {
         id: "q5",
-        text: "Te reaccionan historias, pero conversar nada. Tú:",
+        text: "Te busca cuando pelea con su ex, está bajonead@ o necesita desahogarse. Tú:",
         options: [
-          { id: "a", text: "Eso ya cuenta como interés, ¿no?" },
-          { id: "b", text: "Les sigo el juego un rato." },
-          { id: "c", text: "Reacción no es interés. Siguiente." },
+          { id: "a", text: "Ahí estoy siempre, yo sí sé contener.", score: 10, tags: ["emotionalSupport", "hope"] },
+          { id: "b", text: "Le escucho, aunque sé que después se pierde.", score: 7, tags: ["emotionalSupport", "ghostingTolerance"] },
+          { id: "c", text: "Le apoyo, pero sin regalarme 24/7.", score: 3, tags: ["boundaries"] },
+          { id: "d", text: "No soy terapia gratis, con cariño.", score: 0, tags: ["selfWorth"] },
         ],
       },
       {
         id: "q6",
-        text: "Te dicen “te extraño” pero no hacen nada por verte. Tú:",
+        text: "Te invita recién cuando se le cayó su plan principal. Tú:",
         options: [
-          { id: "a", text: "Me quedo esperando, capaz esta vez sí." },
-          { id: "b", text: "Le recuerdo que hechos matan palabras." },
-          { id: "c", text: "Yo extraño mi paz mental, gracias." },
+          { id: "a", text: "Acepto feliz, peor es nada ya pues.", score: 10, tags: ["planB", "hope"] },
+          { id: "b", text: "Sé que soy plan B, pero igual voy.", score: 7, tags: ["planB", "ambiguity"] },
+          { id: "c", text: "Voy solo si me nace, no por ansiedad.", score: 3, tags: ["boundaries"] },
+          { id: "d", text: "No soy suplencia sentimental.", score: 0, tags: ["selfWorth"] },
         ],
       },
       {
         id: "q7",
-        text: "Te dejan en visto y vuelven dos días después como si nada. Tú:",
+        text: "En chat te trata lindo, pero en público se hace al loco. Tú:",
         options: [
-          { id: "a", text: "Contesto igual, total no pasa nada." },
-          { id: "b", text: "Respondo corto y que se note." },
-          { id: "c", text: "No respondo. Punto final." },
+          { id: "a", text: "Mientras por interno sea bonito, me basta.", score: 10, tags: ["hiddenInPublic", "ambiguity"] },
+          { id: "b", text: "Me incomoda, pero aguanto un rato más.", score: 7, tags: ["hiddenInPublic", "hope"] },
+          { id: "c", text: "Le digo que esa doble cara no va.", score: 3, tags: ["boundaries"] },
+          { id: "d", text: "Si me escondes, me pierdes. De una.", score: 0, tags: ["selfWorth"] },
         ],
       },
       {
         id: "q8",
-        text: "Te invitan solo cuando se les cae el plan principal. Tú:",
+        text: "Te deja en visto todo el finde y vuelve el lunes con “recién vi”. Tú:",
         options: [
-          { id: "a", text: "Acepto. Igual quiero verle." },
-          { id: "b", text: "Depende. Una más y ya no." },
-          { id: "c", text: "No soy plan de emergencia." },
+          { id: "a", text: "No pasa nada, seguro estaba ocupadit@.", score: 10, tags: ["ghostingTolerance", "hope"] },
+          { id: "b", text: "Le respondo igual, aunque ya me ardí.", score: 7, tags: ["ghostingTolerance"] },
+          { id: "c", text: "Respondo corto para que capte.", score: 3, tags: ["boundaries"] },
+          { id: "d", text: "Mi dignidad no tiene horario extendido.", score: 0, tags: ["selfWorth", "boundaries"] },
         ],
       },
       {
         id: "q9",
-        text: "Te hablan solo cuando están tristes o aburridos. Tú:",
+        text: "Te pide fotos, atención, favores o tiempo, pero compromiso cero. Tú:",
         options: [
-          { id: "a", text: "Aquí estoy siempre, ya pues." },
-          { id: "b", text: "Apoyo, pero no soy atención 24/7." },
-          { id: "c", text: "No soy terapia gratis, con cariño." },
+          { id: "a", text: "Accedo, algo debe sentir pues.", score: 10, tags: ["breadcrumbing", "hope"] },
+          { id: "b", text: "Doy un poco, a ver si luego se formaliza.", score: 7, tags: ["ambiguity", "hope"] },
+          { id: "c", text: "Primero respeto y coherencia, luego vemos.", score: 3, tags: ["boundaries"] },
+          { id: "d", text: "Beneficios premium sin reciprocidad, jamás.", score: 0, tags: ["selfWorth"] },
         ],
       },
       {
         id: "q10",
-        text: "Te dicen: “Eres increíble, pero…”. Tú:",
+        text: "Ya llevan rato y cuando preguntas qué son, te dicen “andamos viendo, sin presionar”. Tú:",
         options: [
-          { id: "a", text: "Me quedo con el “increíble”." },
-          { id: "b", text: "Pregunto qué significa ese “pero”." },
-          { id: "c", text: "Gracias. Sigo con mi vida." },
-        ],
-      },
-      {
-        id: "q11",
-        text: "Te piden fotos o atención, pero compromiso cero. Tú:",
-        options: [
-          { id: "a", text: "Accedo… algo debe sentir, ¿no?" },
-          { id: "b", text: "Primero respeto, luego vemos." },
-          { id: "c", text: "No doy beneficios sin reciprocidad." },
-        ],
-      },
-      {
-        id: "q12",
-        text: "Cuando preguntas qué son, te dicen “andamos viendo”. Tú:",
-        options: [
-          { id: "a", text: "Ok, sigo viendo también… solo yo." },
-          { id: "b", text: "Pido claridad y un mínimo de orden." },
-          { id: "c", text: "Si no hay definición, no hay acceso." },
-        ],
-      },
-      {
-        id: "q13",
-        text: "Te ghostean y vuelven con “perdón, estaba full”. Tú:",
-        options: [
-          { id: "a", text: "Se entiende… supongo." },
-          { id: "b", text: "Ok, pero no me desaparezcas así." },
-          { id: "c", text: "Full estaba yo… de paciencia." },
-        ],
-      },
-      {
-        id: "q14",
-        text: "En privado te tratan bonito, pero en público ni te ubican. Tú:",
-        options: [
-          { id: "a", text: "Mientras sea bonito, me basta." },
-          { id: "b", text: "Lo hablo. Ese juego no me gusta." },
-          { id: "c", text: "Si me escondes, me pierdes." },
-        ],
-      },
-      {
-        id: "q15",
-        text: "Te prometen “la próxima semana sí” y nunca cumplen. Tú:",
-        options: [
-          { id: "a", text: "Espero nomás… ya soy paciente profesional." },
-          { id: "b", text: "Una última, pero con fecha fija." },
-          { id: "c", text: "Promesa sin acción es puro cuento." },
+          { id: "a", text: "Me quedo nomás, capaz en algún momento sale.", score: 10, tags: ["ambiguity", "hope"] },
+          { id: "b", text: "Me duele, pero sigo porque ya invertí bastante.", score: 7, tags: ["ambiguity", "breadcrumbing"] },
+          { id: "c", text: "Pido definición con calma.", score: 3, tags: ["boundaries"] },
+          { id: "d", text: "Sin claridad no hay acceso a mi tiempo.", score: 0, tags: ["selfWorth", "boundaries"] },
         ],
       },
     ],
@@ -155,10 +120,9 @@ exports.handler = async (event) => {
     const method =
       event?.httpMethod ||
       event?.requestContext?.http?.method ||
-      event?.requestContext?.request?.method ||
       "GET";
 
-    if (String(method).toUpperCase() === "OPTIONS") {
+    if (method === "OPTIONS") {
       return {
         statusCode: 200,
         headers,
@@ -166,7 +130,7 @@ exports.handler = async (event) => {
       };
     }
 
-    if (String(method).toUpperCase() !== "GET") {
+    if (method !== "GET") {
       return {
         statusCode: 405,
         headers,
@@ -186,7 +150,7 @@ exports.handler = async (event) => {
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ message: "Quiz failed" }),
+      body: JSON.stringify({ message: "quiz failed" }),
     };
   }
 };

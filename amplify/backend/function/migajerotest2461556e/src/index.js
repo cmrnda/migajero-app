@@ -1,9 +1,23 @@
+/* Amplify Params - DO NOT EDIT
+  ENV
+  REGION
+  STORAGE_DYNAMOACF73435_ARN
+  STORAGE_DYNAMOACF73435_NAME
+  STORAGE_DYNAMOACF73435_STREAMARN
+  STORAGE_DYNAMOEB88E40C_ARN
+  STORAGE_DYNAMOEB88E40C_NAME
+  STORAGE_DYNAMOEB88E40C_STREAMARN
+Amplify Params - DO NOT EDIT */
+
+const crypto = require("crypto");
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient, PutCommand } = require("@aws-sdk/lib-dynamodb");
 const {
-  BedrockRuntimeClient,
-  InvokeModelCommand,
-} = require("@aws-sdk/client-bedrock-runtime");
+  DynamoDBDocumentClient,
+  GetCommand,
+  PutCommand,
+  QueryCommand,
+} = require("@aws-sdk/lib-dynamodb");
+const { pickSoloComment, pickDuoComment, tagLabels } = require("./comment-bank");
 
 const headers = {
   "Content-Type": "application/json",
@@ -58,167 +72,386 @@ function parseBody(event) {
   }
 }
 
+function getResultsTable() {
+  return (
+    process.env.STORAGE_DYNAMOEB88E40C_NAME ||
+    process.env.RESULTS_TABLE ||
+    null
+  );
+}
+
+function getInviteSecret() {
+  return String(process.env.DUO_INVITE_SECRET || "").trim();
+}
+
+function verifyInviteToken(token) {
+  const secret = getInviteSecret();
+  if (!secret) {
+    throw new Error("Duo invite secret missing");
+  }
+
+  const [encodedPayload, receivedSignature] = String(token || "").split(".");
+  if (!encodedPayload || !receivedSignature) {
+    throw new Error("Invitación inválida");
+  }
+
+  const expectedSignature = crypto
+    .createHmac("sha256", secret)
+    .update(encodedPayload)
+    .digest("base64url");
+
+  const expectedBuffer = Buffer.from(expectedSignature);
+  const receivedBuffer = Buffer.from(receivedSignature);
+
+  if (
+    expectedBuffer.length !== receivedBuffer.length ||
+    !crypto.timingSafeEqual(expectedBuffer, receivedBuffer)
+  ) {
+    throw new Error("Invitación inválida");
+  }
+
+  let payload = null;
+
+  try {
+    payload = JSON.parse(
+      Buffer.from(encodedPayload, "base64url").toString("utf-8")
+    );
+  } catch {
+    throw new Error("Invitación inválida");
+  }
+
+  if (!payload?.u || !payload?.c || !payload?.exp) {
+    throw new Error("Invitación inválida");
+  }
+
+  if (Date.now() > Number(payload.exp)) {
+    throw new Error("La invitación ya venció");
+  }
+
+  return {
+    inviterUserId: String(payload.u),
+    inviterCreatedAt: String(payload.c),
+  };
+}
+
 function buildQuizDefinition() {
   return {
-    version: "v2",
+    version: "v4",
     title: "Test Migajero",
-    disclaimer: "Es solo entretenimiento. No reemplaza ayuda profesional ni es diagnóstico.",
+    disclaimer:
+      "Es solo entretenimiento. No reemplaza ayuda profesional ni es diagnóstico.",
     questions: [
       {
         id: "q1",
-        text: "Te responden con un “jajaja” y nada más. Tú:",
+        text: "Te responde con sticker, corazoncito o un “jajaja” y desaparece. Tú:",
         options: [
-          { id: "a", text: "Me basta, al menos respondió.", weight: 10, tagKeys: ["breadcrumbing", "hope"] },
-          { id: "b", text: "Respondo tranqui y sigo a lo mío.", weight: 5, tagKeys: ["ambiguity"] },
-          { id: "c", text: "No respondo. Tengo mejores cosas que hacer.", weight: 0, tagKeys: ["selfWorth", "boundaries"] },
+          {
+            id: "a",
+            text: "Yo ya me ilusioné, algo querrá pues.",
+            weight: 10,
+            tagKeys: ["breadcrumbing", "hope", "validationSeeking"],
+          },
+          {
+            id: "b",
+            text: "Le sigo el jueguito, a ver si ahora sí.",
+            weight: 7,
+            tagKeys: ["ambiguity", "hope", "lowEffort"],
+          },
+          {
+            id: "c",
+            text: "Respondo normal, pero sin montar película.",
+            weight: 3,
+            tagKeys: ["boundaries", "selfWorth"],
+          },
+          {
+            id: "d",
+            text: "Sticker no es plan. Next, casera.",
+            weight: 0,
+            tagKeys: ["selfWorth", "boundaries"],
+          },
         ],
       },
       {
         id: "q2",
-        text: "Te dicen “no quiero nada serio” pero te tratan como pareja. Tú:",
+        text: "Te dice “no quiero nada serio”, pero se pone celos@ si te ve con alguien. Tú:",
         options: [
-          { id: "a", text: "Sigo ahí, capaz cambia.", weight: 10, tagKeys: ["hope", "ambiguity"] },
-          { id: "b", text: "Pregunto directo qué está pasando.", weight: 4, tagKeys: ["boundaries"] },
-          { id: "c", text: "Sin claridad no me quedo.", weight: 0, tagKeys: ["selfWorth"] },
+          {
+            id: "a",
+            text: "Capaz sí siente algo, solo le da miedo.",
+            weight: 10,
+            tagKeys: ["hope", "ambiguity", "futureFaking"],
+          },
+          {
+            id: "b",
+            text: "Me confunde, pero me quedo por si cambia.",
+            weight: 7,
+            tagKeys: ["ambiguity", "validationSeeking", "hope"],
+          },
+          {
+            id: "c",
+            text: "Le pido claridad, sin novela.",
+            weight: 3,
+            tagKeys: ["boundaries", "selfWorth"],
+          },
+          {
+            id: "d",
+            text: "Si quiere beneficios sin título, conmigo no va.",
+            weight: 0,
+            tagKeys: ["selfWorth", "boundaries"],
+          },
         ],
       },
       {
         id: "q3",
-        text: "Te cancelan a última hora y te dicen “ya será” sin fecha. Tú:",
+        text: "Te cancela salida con “se me cruzó un tema” y luego sube historias de paseo. Tú:",
         options: [
-          { id: "a", text: "Todo bien, yo entiendo… otra vez.", weight: 9, tagKeys: ["breadcrumbing"] },
-          { id: "b", text: "Ok, pero tú propones día y hora.", weight: 3, tagKeys: ["boundaries"] },
-          { id: "c", text: "Perfecto. Yo también cancelé mi interés.", weight: 0, tagKeys: ["selfWorth"] },
+          {
+            id: "a",
+            text: "Le creo igual, pobrecit@ capaz sí estaba full.",
+            weight: 10,
+            tagKeys: ["ghostingTolerance", "excuseBuying", "inconsistency"],
+          },
+          {
+            id: "b",
+            text: "Me hago la loca, pero sigo disponible.",
+            weight: 7,
+            tagKeys: ["planB", "hope", "excuseBuying"],
+          },
+          {
+            id: "c",
+            text: "Le digo de una que eso no me cuadra.",
+            weight: 3,
+            tagKeys: ["boundaries", "selfWorth"],
+          },
+          {
+            id: "d",
+            text: "Listo, me ahorró tiempo. Chau nomás.",
+            weight: 0,
+            tagKeys: ["selfWorth", "boundaries"],
+          },
         ],
       },
       {
         id: "q4",
-        text: "Solo te escriben de noche con “¿qué haces?”. Tú:",
+        text: "Solo te escribe de noche: “tas despiert@?”. Tú:",
         options: [
-          { id: "a", text: "Estoy libre, ya pues… caigo.", weight: 10, tagKeys: ["breadcrumbing"] },
-          { id: "b", text: "Respondo, pero sin regalarme.", weight: 6, tagKeys: ["ambiguity"] },
-          { id: "c", text: "Modo avión. Que hablen de día.", weight: 0, tagKeys: ["boundaries"] },
+          {
+            id: "a",
+            text: "Sí pues, siempre estoy para esa persona.",
+            weight: 10,
+            tagKeys: ["nightShift", "breadcrumbing", "lowEffort"],
+          },
+          {
+            id: "b",
+            text: "Respondo, aunque ya sé por dónde va.",
+            weight: 7,
+            tagKeys: ["nightShift", "ambiguity", "validationSeeking"],
+          },
+          {
+            id: "c",
+            text: "Contesto al día siguiente, tranqui.",
+            weight: 3,
+            tagKeys: ["boundaries", "selfWorth"],
+          },
+          {
+            id: "d",
+            text: "Mi paz mental duerme temprano. Fin.",
+            weight: 0,
+            tagKeys: ["selfWorth", "boundaries"],
+          },
         ],
       },
       {
         id: "q5",
-        text: "Te reaccionan historias, pero conversar nada. Tú:",
+        text: "Te busca cuando pelea con su ex, está bajonead@ o necesita desahogarse. Tú:",
         options: [
-          { id: "a", text: "Eso ya cuenta como interés, ¿no?", weight: 9, tagKeys: ["hope"] },
-          { id: "b", text: "Les sigo el juego un rato.", weight: 5, tagKeys: ["ambiguity"] },
-          { id: "c", text: "Reacción no es interés. Siguiente.", weight: 0, tagKeys: ["selfWorth"] },
+          {
+            id: "a",
+            text: "Ahí estoy siempre, yo sí sé contener.",
+            weight: 10,
+            tagKeys: ["emotionalSupport", "hope", "validationSeeking"],
+          },
+          {
+            id: "b",
+            text: "Le escucho, aunque sé que después se pierde.",
+            weight: 7,
+            tagKeys: ["emotionalSupport", "ghostingTolerance", "ambiguity"],
+          },
+          {
+            id: "c",
+            text: "Le apoyo, pero sin regalarme 24/7.",
+            weight: 3,
+            tagKeys: ["boundaries", "selfWorth"],
+          },
+          {
+            id: "d",
+            text: "No soy terapia gratis, con cariño.",
+            weight: 0,
+            tagKeys: ["selfWorth", "boundaries"],
+          },
         ],
       },
       {
         id: "q6",
-        text: "Te dicen “te extraño” pero no hacen nada por verte. Tú:",
+        text: "Te invita recién cuando se le cayó su plan principal. Tú:",
         options: [
-          { id: "a", text: "Me quedo esperando, capaz esta vez sí.", weight: 10, tagKeys: ["hope", "ambiguity"] },
-          { id: "b", text: "Le recuerdo que hechos matan palabras.", weight: 3, tagKeys: ["boundaries"] },
-          { id: "c", text: "Yo extraño mi paz mental, gracias.", weight: 0, tagKeys: ["selfWorth"] },
+          {
+            id: "a",
+            text: "Acepto feliz, peor es nada ya pues.",
+            weight: 10,
+            tagKeys: ["planB", "hope", "lowEffort"],
+          },
+          {
+            id: "b",
+            text: "Sé que soy plan B, pero igual voy.",
+            weight: 7,
+            tagKeys: ["planB", "ambiguity", "validationSeeking"],
+          },
+          {
+            id: "c",
+            text: "Voy solo si me nace, no por ansiedad.",
+            weight: 3,
+            tagKeys: ["boundaries", "selfWorth"],
+          },
+          {
+            id: "d",
+            text: "No soy suplencia sentimental.",
+            weight: 0,
+            tagKeys: ["selfWorth", "boundaries"],
+          },
         ],
       },
       {
         id: "q7",
-        text: "Te dejan en visto y vuelven dos días después como si nada. Tú:",
+        text: "En chat te trata lindo, pero en público se hace al loco. Tú:",
         options: [
-          { id: "a", text: "Contesto igual, total no pasa nada.", weight: 9, tagKeys: ["breadcrumbing"] },
-          { id: "b", text: "Respondo corto y que se note.", weight: 5, tagKeys: ["boundaries"] },
-          { id: "c", text: "No respondo. Punto final.", weight: 0, tagKeys: ["selfWorth", "boundaries"] },
+          {
+            id: "a",
+            text: "Mientras por interno sea bonito, me basta.",
+            weight: 10,
+            tagKeys: ["hiddenInPublic", "ambiguity", "validationSeeking"],
+          },
+          {
+            id: "b",
+            text: "Me incomoda, pero aguanto un rato más.",
+            weight: 7,
+            tagKeys: ["hiddenInPublic", "hope", "inconsistency"],
+          },
+          {
+            id: "c",
+            text: "Le digo que esa doble cara no va.",
+            weight: 3,
+            tagKeys: ["boundaries", "selfWorth"],
+          },
+          {
+            id: "d",
+            text: "Si me escondes, me pierdes. De una.",
+            weight: 0,
+            tagKeys: ["selfWorth", "boundaries"],
+          },
         ],
       },
       {
         id: "q8",
-        text: "Te invitan solo cuando se les cae el plan principal. Tú:",
+        text: "Te deja en visto todo el finde y vuelve el lunes con “recién vi”. Tú:",
         options: [
-          { id: "a", text: "Acepto. Igual quiero verle.", weight: 10, tagKeys: ["breadcrumbing"] },
-          { id: "b", text: "Depende. Una más y ya no.", weight: 5, tagKeys: ["boundaries"] },
-          { id: "c", text: "No soy plan de emergencia.", weight: 0, tagKeys: ["selfWorth"] },
+          {
+            id: "a",
+            text: "No pasa nada, seguro estaba ocupadit@.",
+            weight: 10,
+            tagKeys: ["ghostingTolerance", "hope", "excuseBuying"],
+          },
+          {
+            id: "b",
+            text: "Le respondo igual, aunque ya me ardí.",
+            weight: 7,
+            tagKeys: ["ghostingTolerance", "inconsistency", "ambiguity"],
+          },
+          {
+            id: "c",
+            text: "Respondo corto para que capte.",
+            weight: 3,
+            tagKeys: ["boundaries", "selfWorth"],
+          },
+          {
+            id: "d",
+            text: "Mi dignidad no tiene horario extendido.",
+            weight: 0,
+            tagKeys: ["selfWorth", "boundaries"],
+          },
         ],
       },
       {
         id: "q9",
-        text: "Te hablan solo cuando están tristes o aburridos. Tú:",
+        text: "Te pide fotos, atención, favores o tiempo, pero compromiso cero. Tú:",
         options: [
-          { id: "a", text: "Aquí estoy siempre, ya pues.", weight: 10, tagKeys: ["hope"] },
-          { id: "b", text: "Apoyo, pero no soy atención 24/7.", weight: 4, tagKeys: ["boundaries"] },
-          { id: "c", text: "No soy terapia gratis, con cariño.", weight: 0, tagKeys: ["selfWorth"] },
+          {
+            id: "a",
+            text: "Accedo, algo debe sentir pues.",
+            weight: 10,
+            tagKeys: ["breadcrumbing", "hope", "validationSeeking"],
+          },
+          {
+            id: "b",
+            text: "Doy un poco, a ver si luego se formaliza.",
+            weight: 7,
+            tagKeys: ["ambiguity", "hope", "futureFaking"],
+          },
+          {
+            id: "c",
+            text: "Primero respeto y coherencia, luego vemos.",
+            weight: 3,
+            tagKeys: ["boundaries", "selfWorth"],
+          },
+          {
+            id: "d",
+            text: "Beneficios premium sin reciprocidad, jamás.",
+            weight: 0,
+            tagKeys: ["selfWorth", "boundaries"],
+          },
         ],
       },
       {
         id: "q10",
-        text: "Te dicen: “Eres increíble, pero…”. Tú:",
+        text: "Ya llevan rato y cuando preguntas qué son, te dicen “andamos viendo, sin presionar”. Tú:",
         options: [
-          { id: "a", text: "Me quedo con el “increíble”.", weight: 9, tagKeys: ["ambiguity", "hope"] },
-          { id: "b", text: "Pregunto qué significa ese “pero”.", weight: 4, tagKeys: ["boundaries"] },
-          { id: "c", text: "Gracias. Sigo con mi vida.", weight: 0, tagKeys: ["selfWorth"] },
-        ],
-      },
-      {
-        id: "q11",
-        text: "Te piden fotos o atención, pero compromiso cero. Tú:",
-        options: [
-          { id: "a", text: "Accedo… algo debe sentir, ¿no?", weight: 10, tagKeys: ["breadcrumbing"] },
-          { id: "b", text: "Primero respeto, luego vemos.", weight: 4, tagKeys: ["boundaries"] },
-          { id: "c", text: "No doy beneficios sin reciprocidad.", weight: 0, tagKeys: ["selfWorth"] },
-        ],
-      },
-      {
-        id: "q12",
-        text: "Cuando preguntas qué son, te dicen “andamos viendo”. Tú:",
-        options: [
-          { id: "a", text: "Ok, sigo viendo también… solo yo.", weight: 10, tagKeys: ["ambiguity", "hope"] },
-          { id: "b", text: "Pido claridad y un mínimo de orden.", weight: 4, tagKeys: ["boundaries"] },
-          { id: "c", text: "Si no hay definición, no hay acceso.", weight: 0, tagKeys: ["selfWorth"] },
-        ],
-      },
-      {
-        id: "q13",
-        text: "Te ghostean y vuelven con “perdón, estaba full”. Tú:",
-        options: [
-          { id: "a", text: "Se entiende… supongo.", weight: 10, tagKeys: ["breadcrumbing"] },
-          { id: "b", text: "Ok, pero no me desaparezcas así.", weight: 4, tagKeys: ["boundaries"] },
-          { id: "c", text: "Full estaba yo… de paciencia.", weight: 0, tagKeys: ["selfWorth"] },
-        ],
-      },
-      {
-        id: "q14",
-        text: "En privado te tratan bonito, pero en público ni te ubican. Tú:",
-        options: [
-          { id: "a", text: "Mientras sea bonito, me basta.", weight: 9, tagKeys: ["ambiguity"] },
-          { id: "b", text: "Lo hablo. Ese juego no me gusta.", weight: 4, tagKeys: ["boundaries"] },
-          { id: "c", text: "Si me escondes, me pierdes.", weight: 0, tagKeys: ["selfWorth"] },
-        ],
-      },
-      {
-        id: "q15",
-        text: "Te prometen “la próxima semana sí” y nunca cumplen. Tú:",
-        options: [
-          { id: "a", text: "Espero nomás… ya soy paciente profesional.", weight: 10, tagKeys: ["hope"] },
-          { id: "b", text: "Una última, pero con fecha fija.", weight: 5, tagKeys: ["boundaries"] },
-          { id: "c", text: "Promesa sin acción es puro cuento.", weight: 0, tagKeys: ["selfWorth"] },
+          {
+            id: "a",
+            text: "Me quedo nomás, capaz en algún momento sale.",
+            weight: 10,
+            tagKeys: ["ambiguity", "hope", "futureFaking"],
+          },
+          {
+            id: "b",
+            text: "Me duele, pero sigo porque ya invertí bastante.",
+            weight: 7,
+            tagKeys: ["ambiguity", "breadcrumbing", "excuseBuying"],
+          },
+          {
+            id: "c",
+            text: "Pido definición con calma.",
+            weight: 3,
+            tagKeys: ["boundaries", "selfWorth"],
+          },
+          {
+            id: "d",
+            text: "Sin claridad no hay acceso a mi tiempo.",
+            weight: 0,
+            tagKeys: ["selfWorth", "boundaries"],
+          },
         ],
       },
     ],
   };
 }
 
-function getTagLabelMap() {
-  return {
-    breadcrumbing: "Breadcrumbing detectado",
-    hope: "Esperanza premium",
-    ambiguity: "Ambigüedad romántica",
-    boundaries: "Límites activándose",
-    selfWorth: "Amor propio presente",
-  };
-}
-
 function getLevelFromScore(score) {
-  if (score <= 15) return "Cero migajas, full paz mental";
-  if (score <= 35) return "Migajer@ en recuperación";
-  if (score <= 60) return "Migajer@ funcional";
-  if (score <= 80) return "Migajer@ certificad@";
-  return "Leyenda del migajeo";
+  if (score <= 10) return "Antimigajas profesional";
+  if (score <= 25) return "Casi inmune al cuento";
+  if (score <= 45) return "Migajer@ en observación";
+  if (score <= 65) return "Migajer@ funcional";
+  if (score <= 85) return "Migajer@ con carnet";
+  return "Leyenda nacional del migajeo";
 }
 
 function sanitizeName(value) {
@@ -238,6 +471,7 @@ function sanitizeGender(value) {
   const parsed = String(value ?? "")
     .trim()
     .toUpperCase();
+
   return ["F", "M", "X", "N"].includes(parsed) ? parsed : null;
 }
 
@@ -266,7 +500,9 @@ function normalizeAnswers(input) {
 function evaluateAnswers(answers) {
   const quiz = buildQuizDefinition();
   const questions = quiz.questions;
-  const questionMap = new Map(questions.map((question) => [question.id, question]));
+  const questionMap = new Map(
+    questions.map((question) => [question.id, question])
+  );
   const normalizedAnswers = normalizeAnswers(answers);
 
   if (normalizedAnswers.length !== questions.length) {
@@ -319,12 +555,11 @@ function evaluateAnswers(answers) {
   );
 
   const rawTags = [...tagCount.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, 5)
     .map(([tagKey]) => tagKey);
 
-  const tagLabelMap = getTagLabelMap();
-  const tags = rawTags.map((tagKey) => tagLabelMap[tagKey] || tagKey);
+  const tags = rawTags.map((tagKey) => tagLabels[tagKey] || tagKey);
   const level = getLevelFromScore(score);
 
   return {
@@ -337,103 +572,99 @@ function evaluateAnswers(answers) {
   };
 }
 
-function buildFallbackComment({ score, profile }) {
-  const name = sanitizeName(profile?.fullName);
-  const greeting = name ? `${name}, ` : "";
+function normalizeSoloResult(item) {
+  if (!item) return null;
 
-  if (score <= 15) {
-    return `${greeting}estás clarit@, tranqui.\nNo compras humo y eso se respeta.`;
-  }
-
-  if (score <= 35) {
-    return `${greeting}vas saliendo del evento canónico.\nTodavía dudas un poco, pero ya estás viendo la luz.`;
-  }
-
-  if (score <= 60) {
-    return `${greeting}hay señales raras y tú todavía negocias con el universo.\nOjo ahí, ya toca subir estándares.`;
-  }
-
-  if (score <= 80) {
-    return `${greeting}te dieron migajas y tú casi armaste menú.\nYa pues, menos excusas y más límites.`;
-  }
-
-  return `${greeting}esto ya fue arte del autoengaño.\nRespira, bloquea si hace falta y vuelve a ti.`;
+  return {
+    userId: item.userId ?? null,
+    createdAt: item.createdAt ?? null,
+    mode: item.mode ?? null,
+    quizVersion: item.quizVersion ?? null,
+    score: Number.isFinite(Number(item.score)) ? Number(item.score) : 0,
+    level: item.level ?? null,
+    rawTags: Array.isArray(item.rawTags) ? item.rawTags : [],
+    tags: Array.isArray(item.tags) ? item.tags : [],
+    comment: item.comment ?? null,
+    profile: item.profile ?? null,
+  };
 }
 
-async function buildAiComment({ score, level, tags, profile }) {
-  const modelId =
-    process.env.BEDROCK_MODEL_ID ||
-    "anthropic.claude-3-haiku-20240307-v1:0";
-
-  const bedrockRegion =
-    process.env.BEDROCK_REGION ||
-    process.env.AWS_REGION ||
-    process.env.REGION ||
-    "us-east-1";
-
-  const client = new BedrockRuntimeClient({ region: bedrockRegion });
-  const safeName = sanitizeName(profile?.fullName);
-  const intensity =
-    score >= 85 ? "alta" : score >= 60 ? "media-alta" : score >= 35 ? "media" : "baja";
-
-  const prompt = `
-Escribe un comentario corto en español para una app divertida de Bolivia.
-Debe sonar natural, agradable, chistoso y con cariño.
-Máximo 2 líneas.
-No uses markdown.
-No pongas comillas.
-No repitas números.
-No menciones score, porcentaje, tags, categorías ni nivel.
-No insultes.
-Usa como mucho una o dos expresiones suaves como: ya pues, tranqui, nomás, de una , yiaaa.
-No hagas listas.
-
-Nombre opcional: ${safeName || "sin nombre"}
-Intensidad: ${intensity}
-Resultado interno: ${level}
-Patrones internos: ${tags.join(" | ")}
-`.trim();
-
-  const payload = {
-    anthropic_version: "bedrock-2023-05-31",
-    max_tokens: 90,
-    temperature: 0.8,
-    messages: [
-      {
-        role: "user",
-        content: [{ type: "text", text: prompt }],
+async function getResultByKey(resultsTable, userId, createdAt) {
+  const response = await ddb.send(
+    new GetCommand({
+      TableName: resultsTable,
+      Key: {
+        userId,
+        createdAt,
       },
-    ],
-  };
-
-  const response = await client.send(
-    new InvokeModelCommand({
-      contentType: "application/json",
-      accept: "application/json",
-      body: JSON.stringify(payload),
-      modelId,
     })
   );
 
-  const decoded = new TextDecoder().decode(response.body);
-  const data = JSON.parse(decoded);
-  let text = String(data?.content?.[0]?.text || "")
-    .replace(/```/g, "")
-    .replace(/^"+|"+$/g, "")
-    .trim();
+  return normalizeSoloResult(response.Item);
+}
 
-  text = text
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .slice(0, 2)
-    .join("\n");
+async function getLatestSoloResult(resultsTable, userId) {
+  const response = await ddb.send(
+    new QueryCommand({
+      TableName: resultsTable,
+      KeyConditionExpression: "userId = :userId",
+      ExpressionAttributeValues: {
+        ":userId": userId,
+      },
+      ScanIndexForward: false,
+      Limit: 12,
+    })
+  );
 
-  if (!text || /score|porcentaje|tag|categor/i.test(text) || text.length > 180) {
-    return buildFallbackComment({ score, profile });
+  const items = Array.isArray(response.Items) ? response.Items : [];
+  const item = items.find((entry) => entry?.mode !== "DUO") || null;
+
+  return normalizeSoloResult(item);
+}
+
+function toComparisonSide(result, fallbackName) {
+  return {
+    userId: result.userId,
+    createdAt: result.createdAt,
+    displayName: sanitizeName(result?.profile?.fullName) || fallbackName,
+    score: Number.isFinite(Number(result?.score)) ? Number(result.score) : 0,
+    level: result?.level ?? null,
+    rawTags: Array.isArray(result?.rawTags) ? result.rawTags : [],
+    tags: Array.isArray(result?.tags) ? result.tags : [],
+  };
+}
+
+function buildDuoMeta(leftResult, rightResult) {
+  const left = toComparisonSide(leftResult, "Persona A");
+  const right = toComparisonSide(rightResult, "Persona B");
+
+  if (left.score > right.score) {
+    return {
+      left,
+      right,
+      winner: "LEFT",
+      winnerName: left.displayName,
+      scoreGap: left.score - right.score,
+    };
   }
 
-  return text;
+  if (right.score > left.score) {
+    return {
+      left,
+      right,
+      winner: "RIGHT",
+      winnerName: right.displayName,
+      scoreGap: right.score - left.score,
+    };
+  }
+
+  return {
+    left,
+    right,
+    winner: "TIE",
+    winnerName: null,
+    scoreGap: 0,
+  };
 }
 
 exports.handler = async (event) => {
@@ -453,69 +684,110 @@ exports.handler = async (event) => {
       return json(401, { message: "No auth" });
     }
 
-    const resultsTable = process.env.STORAGE_DYNAMOEB88E40C_NAME;
+    const resultsTable = getResultsTable();
     if (!resultsTable) {
       return json(500, { message: "Results table missing" });
     }
 
     const body = parseBody(event);
     const mode = String(body.mode || "SOLO").trim().toUpperCase();
-    const profile = sanitizeProfile(body.profile);
-    const evaluation = evaluateAnswers(body.answers);
-    const createdAt = new Date().toISOString();
 
-    let comment = buildFallbackComment({
-      score: evaluation.score,
-      profile,
-    });
+    if (mode === "SOLO") {
+      const profile = sanitizeProfile(body.profile);
+      const evaluation = evaluateAnswers(body.answers);
+      const createdAt = new Date().toISOString();
 
-    try {
-      const aiComment = await buildAiComment({
+      const comment = pickSoloComment({
         score: evaluation.score,
-        level: evaluation.level,
-        tags: evaluation.tags,
         profile,
+        rawTags: evaluation.rawTags,
+        tags: evaluation.tags,
       });
 
-      if (aiComment) {
-        comment = aiComment;
-      }
-    } catch (error) {
-      console.log("BEDROCK_FAIL", error?.name || error?.message || error);
+      const item = {
+        userId,
+        createdAt,
+        mode,
+        quizVersion: evaluation.quizVersion,
+        score: evaluation.score,
+        level: evaluation.level,
+        rawTags: evaluation.rawTags,
+        tags: evaluation.tags,
+        answers: evaluation.answers,
+        profile,
+        comment,
+      };
+
+      await ddb.send(
+        new PutCommand({
+          TableName: resultsTable,
+          Item: item,
+        })
+      );
+
+      return json(200, {
+        createdAt,
+        mode,
+        quizVersion: evaluation.quizVersion,
+        score: evaluation.score,
+        level: evaluation.level,
+        rawTags: evaluation.rawTags,
+        tags: evaluation.tags,
+        comment,
+        profile,
+      });
     }
 
-    const item = {
-      userId,
-      createdAt,
-      mode,
-      quizVersion: evaluation.quizVersion,
-      score: evaluation.score,
-      level: evaluation.level,
-      rawTags: evaluation.rawTags,
-      tags: evaluation.tags,
-      answers: evaluation.answers,
-      profile,
-      comment,
-    };
+    if (mode === "DUO") {
+      const inviteToken = String(body.inviteToken || "").trim();
+      if (!inviteToken) {
+        return json(400, { message: "Invitación inválida" });
+      }
 
-    await ddb.send(
-      new PutCommand({
-        TableName: resultsTable,
-        Item: item,
-      })
-    );
+      const decodedInvite = verifyInviteToken(inviteToken);
 
-    return json(200, {
-      createdAt,
-      mode,
-      quizVersion: evaluation.quizVersion,
-      score: evaluation.score,
-      level: evaluation.level,
-      rawTags: evaluation.rawTags,
-      tags: evaluation.tags,
-      comment,
-      profile,
-    });
+      if (decodedInvite.inviterUserId === userId) {
+        return json(400, { message: "No puedes compararte contigo mism@" });
+      }
+
+      const inviterResult = await getResultByKey(
+        resultsTable,
+        decodedInvite.inviterUserId,
+        decodedInvite.inviterCreatedAt
+      );
+
+      if (!inviterResult || inviterResult.mode === "DUO") {
+        return json(404, {
+          message: "El resultado de invitación ya no existe",
+        });
+      }
+
+      const inviteeResult = await getLatestSoloResult(resultsTable, userId);
+
+      if (!inviteeResult) {
+        return json(400, { message: "Primero debes completar tu test" });
+      }
+
+      const duoMeta = buildDuoMeta(inviterResult, inviteeResult);
+      const comment = pickDuoComment(duoMeta);
+
+      return json(200, {
+        mode: "DUO",
+        createdAt: new Date().toISOString(),
+        leftResult: duoMeta.left,
+        rightResult: duoMeta.right,
+        winner: duoMeta.winner,
+        winnerName: duoMeta.winnerName,
+        winnerLabel:
+          duoMeta.winner === "TIE"
+            ? "Empate técnico"
+            : "Más migajer@ del duelo",
+        scoreGap: duoMeta.scoreGap,
+        comment,
+      });
+    }
+
+    return json(400, { message: "Modo inválido" });
   } catch (error) {
     console.error("SUBMIT_ERROR", error);
     return json(500, {

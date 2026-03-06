@@ -1,5 +1,4 @@
 import { get, post, put } from 'aws-amplify/api';
-import { QUIZ_VERSION } from '../config/app-info';
 
 const API_NAME = 'apieff38f7c';
 
@@ -7,17 +6,19 @@ type JsonPrimitive = string | number | boolean | null;
 type JsonValue = JsonPrimitive | JsonObject | JsonValue[];
 type JsonObject = { [key: string]: JsonValue };
 
-export type GenderValue = 'F' | 'M' | 'X' | 'N';
+export type Gender = 'F' | 'M' | 'X' | 'N';
 
 export interface Profile {
   fullName: string | null;
   age: number | null;
-  gender: GenderValue | null;
+  gender: Gender | null;
 }
 
 export interface QuizOption {
   id: string;
   text: string;
+  score: number;
+  tags: string[];
 }
 
 export interface QuizQuestion {
@@ -26,27 +27,21 @@ export interface QuizQuestion {
   options: QuizOption[];
 }
 
-export interface QuizResponse {
+export interface QuizDefinition {
   version: string;
   title: string;
   disclaimer: string;
   questions: QuizQuestion[];
 }
 
-export interface QuizAnswerPayload {
+export interface SoloAnswerPayload {
   questionId: string;
   optionId: string;
 }
 
-export interface SubmitQuizPayload {
-  mode: 'SOLO' | 'DUO';
-  profile: Profile | null;
-  answers: QuizAnswerPayload[];
-}
-
-export interface QuizResult {
+export interface SoloResult {
   createdAt: string;
-  mode: string;
+  mode: 'SOLO';
   quizVersion: string;
   score: number;
   level: string;
@@ -56,89 +51,137 @@ export interface QuizResult {
   profile: Profile | null;
 }
 
+export interface DuoSideResult {
+  userId: string;
+  createdAt: string;
+  displayName: string;
+  score: number;
+  level: string | null;
+  rawTags?: string[];
+  tags: string[];
+}
+
+export interface DuoResult {
+  mode: 'DUO';
+  createdAt: string;
+  leftResult: DuoSideResult;
+  rightResult: DuoSideResult;
+  winner: 'LEFT' | 'RIGHT' | 'TIE';
+  winnerName: string | null;
+  winnerLabel: string;
+  scoreGap: number;
+  comment: string;
+}
+
 export interface MeResponse {
   profile: Profile;
-  lastResult: QuizResult | null;
-  results?: QuizResult[];
+  lastResult: SoloResult | null;
+  duoInviteToken?: string | null;
+  results?: SoloResult[];
 }
 
-function toDocumentBody<T>(value: T): JsonObject {
-  return JSON.parse(JSON.stringify(value)) as JsonObject;
+export interface SubmitSoloPayload {
+  mode: 'SOLO';
+  profile: Profile | null;
+  answers: SoloAnswerPayload[];
 }
 
-async function parseBody(response: any) {
+export interface SubmitDuoPayload {
+  mode: 'DUO';
+  inviteToken: string;
+}
+
+async function parseBody(res: any) {
   try {
-    return await response.body.json();
+    return await res.body.json();
   } catch {
     try {
-      return await response.body.text();
+      return await res.body.text();
     } catch {
       return null;
     }
   }
 }
 
-async function requestJson(operation: any) {
-  const response = await operation.response;
-  const data = await parseBody(response);
+async function requestJson<T>(op: any): Promise<T> {
+  const res = await op.response;
+  const data = await parseBody(res);
 
-  if (response.statusCode >= 400) {
+  if (res.statusCode >= 400) {
     const message =
-      data && (data.message || data.error)
-        ? data.message || data.error
-        : `HTTP ${response.statusCode}`;
+      data && typeof data === 'object' && ('message' in data || 'error' in data)
+        ? String((data as any).message || (data as any).error)
+        : `HTTP ${res.statusCode}`;
 
     const error: any = new Error(message);
-    error.statusCode = response.statusCode;
+    error.statusCode = res.statusCode;
+    error.payload = data;
     throw error;
   }
 
-  return data;
+  return data as T;
 }
 
-export function fetchQuiz(version = QUIZ_VERSION) {
-  return requestJson(
+function toJsonBody(value: unknown): JsonObject {
+  return JSON.parse(JSON.stringify(value ?? {})) as JsonObject;
+}
+
+export function fetchQuiz(version = 'v4') {
+  return requestJson<QuizDefinition>(
     get({
       apiName: API_NAME,
       path: '/quiz',
-      options: {
-        queryParams: { v: version }
-      }
+      options: { queryParams: { v: version } }
     })
-  ) as Promise<QuizResponse>;
+  );
 }
 
-export function submitQuiz(payload: SubmitQuizPayload) {
-  return requestJson(
+export function submitSolo(payload: SubmitSoloPayload) {
+  return requestJson<SoloResult>(
     post({
       apiName: API_NAME,
       path: '/submit',
       options: {
-        body: toDocumentBody(payload)
+        body: toJsonBody(payload)
       }
     })
-  ) as Promise<QuizResult>;
+  );
+}
+
+export function submitDuo(inviteToken: string) {
+  return requestJson<DuoResult>(
+    post({
+      apiName: API_NAME,
+      path: '/submit',
+      options: {
+        body: toJsonBody({
+          mode: 'DUO',
+          inviteToken
+        } satisfies SubmitDuoPayload)
+      }
+    })
+  );
 }
 
 export function getMe() {
-  return requestJson(
+  return requestJson<MeResponse>(
     get({
       apiName: API_NAME,
       path: '/me'
     })
-  ) as Promise<MeResponse>;
+  );
 }
 
-export function updateMe(payload: { fullName: string; age: number; gender: GenderValue }) {
-  return requestJson(
+export function updateMe(payload: Profile) {
+  return requestJson<{ ok: true; profile: Profile }>(
     put({
       apiName: API_NAME,
       path: '/me',
       options: {
-        body: toDocumentBody(payload)
+        body: toJsonBody(payload)
       }
     })
-  ) as Promise<{ ok: true; profile: Profile }>;
+  );
 }
 
 export async function getMyLastResult() {
