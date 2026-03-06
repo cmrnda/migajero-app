@@ -1,223 +1,183 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { fetchQuiz, getMe, submitQuiz } from '../../core/api/migajero-api';
+import { APP_VERSION, QUIZ_VERSION } from '../../core/config/app-info';
+import {
+  QuizOption,
+  QuizQuestion,
+  QuizResponse,
+  fetchQuiz,
+  getMe,
+  submitQuiz
+} from '../../core/api/migajero-api';
 
-const CACHE_KEY = 'migajero:lastResult';
+type SelectedAnswer = {
+  optionId: string;
+};
 
-function writeCache(result: any) {
+const cacheKey = 'migajero:lastResult';
+
+function writeResultCache(result: unknown) {
   try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify(result));
+    localStorage.setItem(cacheKey, JSON.stringify(result));
   } catch {}
 }
-
-// Tipos mínimos (te evita bugs silenciosos)
-type QuizOption = { id: string; text: string; score?: number; tags?: string[] };
-type QuizQuestion = { id: string; text: string; options: QuizOption[] };
-type Quiz = { version?: string; disclaimer?: string; questions: QuizQuestion[] };
-
-type AnswerState = { optionId: string; score: number; tags: string[] };
 
 @Component({
   standalone: true,
   imports: [CommonModule, RouterModule],
-  templateUrl: './solo-quiz.page.html',
+  templateUrl: './solo-quiz.page.html'
 })
-export class SoloQuizPage {
+export class SoloQuizPage implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
-  quiz: Quiz | null = null;
-  me: any = null;
+  protected readonly appVersion = APP_VERSION;
+  protected readonly quizVersion = QUIZ_VERSION;
 
-  loading = false;
-  submitting = false;
+  protected quiz: QuizResponse | null = null;
+  protected profileData: any = null;
+  protected lastResult: any = null;
 
-  errorMsg: string | null = null;
-  lastResult: any = null;
+  protected isLoading = false;
+  protected isSubmitting = false;
+  protected errorMessage: string | null = null;
 
-  idx = 0;
-
-  // ✅ Map por questionId (correcto)
-  answers = new Map<string, AnswerState>();
-
-  // UX: auto avanzar al seleccionar (puedes apagarlo)
-  autoAdvance = true;
+  protected questionIndex = 0;
+  protected readonly selectedAnswers = new Map<string, SelectedAnswer>();
+  protected autoAdvance = true;
 
   async ngOnInit() {
-    this.loading = true;
-    this.errorMsg = null;
+    this.isLoading = true;
+    this.errorMessage = null;
 
-    // ✅ Si vienes con ?force=1, reinicia estado local del quiz
     const force = this.route.snapshot.queryParamMap.get('force');
+
     if (force) {
-      this.idx = 0;
-      this.answers.clear();
+      this.questionIndex = 0;
+      this.selectedAnswers.clear();
     }
 
     try {
-      this.quiz = await fetchQuiz('v1');
+      this.quiz = await fetchQuiz(this.quizVersion);
 
-      // Ajusta idx por si el quiz cambia
       if (this.totalQuestions > 0) {
-        this.idx = Math.min(this.idx, this.totalQuestions - 1);
+        this.questionIndex = Math.min(this.questionIndex, this.totalQuestions - 1);
       } else {
-        this.idx = 0;
+        this.questionIndex = 0;
       }
 
-      // /me no bloquea
       try {
-        this.me = await getMe();
-        this.lastResult = this.me?.lastResult ?? null;
-      } catch (e: any) {
-        this.me = null;
+        const me = await getMe();
+        this.profileData = me.profile;
+        this.lastResult = me.lastResult;
+      } catch {
+        this.profileData = null;
         this.lastResult = null;
-        console.log('ME_FAIL (no bloquea):', e?.message ?? e);
       }
-    } catch (e: any) {
-      this.errorMsg = e?.message ?? 'Error cargando el test';
+    } catch (error: any) {
+      this.errorMessage = error?.message ?? 'No se pudo cargar el test.';
       this.quiz = null;
     } finally {
-      this.loading = false;
+      this.isLoading = false;
     }
   }
 
-  // ----- Navegación -----
-  goLastResult() {
+  protected goLastResult() {
     this.router.navigateByUrl('/solo/result');
   }
 
-  get totalQuestions() {
+  protected get totalQuestions() {
     return this.quiz?.questions?.length ?? 0;
   }
 
-  get q(): QuizQuestion | null {
-    return this.quiz?.questions?.[this.idx] ?? null;
+  protected get currentQuestion(): QuizQuestion | null {
+    return this.quiz?.questions?.[this.questionIndex] ?? null;
   }
 
-  get answeredCount() {
-    return this.answers.size;
+  protected get answeredCount() {
+    return this.selectedAnswers.size;
   }
 
-  // ✅ Progreso real: respondidas / total
-  get progressPercent() {
-    const total = this.totalQuestions;
-    if (!total) return 0;
-    return Math.round((this.answeredCount / total) * 100);
+  protected get progressPercent() {
+    if (!this.totalQuestions) return 0;
+    return Math.round((this.answeredCount / this.totalQuestions) * 100);
   }
 
-  // ✅ Para mostrar “Pregunta x / y”
-  get stepText() {
-    const total = this.totalQuestions;
-    return total ? `${this.idx + 1} / ${total}` : '';
+  protected isSelected(optionId: string) {
+    const questionId = this.currentQuestion?.id;
+    if (!questionId) return false;
+    return this.selectedAnswers.get(questionId)?.optionId === optionId;
   }
 
-  isAnswered(questionId: string) {
-    return this.answers.has(questionId);
-  }
+  protected select(option: QuizOption) {
+    if (this.isLoading || this.isSubmitting || !this.currentQuestion) return;
 
-  isSelected(optionId: string) {
-    const qid = this.q?.id;
-    if (!qid) return false;
-    return this.answers.get(qid)?.optionId === optionId;
-  }
-
-  // ----- Selección -----
-  select(option: QuizOption) {
-    if (this.loading || this.submitting) return;
-    if (!this.q) return;
-
-    this.answers.set(this.q.id, {
-      optionId: option.id,
-      score: option.score ?? 0,
-      tags: option.tags ?? [],
+    this.selectedAnswers.set(this.currentQuestion.id, {
+      optionId: option.id
     });
 
-    // ✅ Auto avance (si quieres)
-    if (this.autoAdvance && this.idx < this.totalQuestions - 1) {
-      // deja respirar al DOM para que se vea el “seleccionada”
+    if (this.autoAdvance && this.questionIndex < this.totalQuestions - 1) {
       setTimeout(() => this.next(), 120);
     }
   }
 
-  // ----- Botones -----
-  canNext() {
-    return !!this.q && this.isAnswered(this.q.id) && !this.submitting;
+  protected canGoNext() {
+    return !!this.currentQuestion && this.selectedAnswers.has(this.currentQuestion.id) && !this.isSubmitting;
   }
 
-  next() {
-    if (!this.canNext()) return;
-    const last = this.totalQuestions - 1;
-    this.idx = Math.min(this.idx + 1, last);
+  protected next() {
+    if (!this.canGoNext()) return;
+    this.questionIndex = Math.min(this.questionIndex + 1, this.totalQuestions - 1);
   }
 
-  prev() {
-    if (this.submitting) return;
-    this.idx = Math.max(this.idx - 1, 0);
+  protected prev() {
+    if (this.isSubmitting) return;
+    this.questionIndex = Math.max(this.questionIndex - 1, 0);
   }
 
-  // ✅ Submit correcto: verifica TODO y arma answers en ORDEN del quiz
-  canSubmit() {
-    return (
-      !!this.quiz &&
-      this.totalQuestions > 0 &&
-      this.answeredCount === this.totalQuestions &&
-      !this.submitting
-    );
+  protected canSubmit() {
+    return !!this.quiz && this.totalQuestions > 0 && this.answeredCount === this.totalQuestions && !this.isSubmitting;
   }
 
   private buildOrderedAnswers() {
     if (!this.quiz) return [];
 
-    // Si falta una respuesta, explota aquí (mejor que mandar payload incompleto)
-    for (const q of this.quiz.questions) {
-      if (!this.answers.has(q.id)) {
-        throw new Error('Te falta responder una pregunta antes de continuar.');
-      }
-    }
+    return this.quiz.questions.map((question) => {
+      const selected = this.selectedAnswers.get(question.id);
 
-    return this.quiz.questions.map((q) => {
-      const v = this.answers.get(q.id)!;
+      if (!selected) {
+        throw new Error('Te falta responder al menos una pregunta.');
+      }
+
       return {
-        questionId: q.id,
-        optionId: v.optionId,
-        score: v.score,
-        tags: v.tags,
+        questionId: question.id,
+        optionId: selected.optionId
       };
     });
   }
 
-  async submit() {
+  protected async submit() {
     if (!this.canSubmit()) return;
 
-    this.submitting = true;
-    this.errorMsg = null;
+    this.isSubmitting = true;
+    this.errorMessage = null;
 
     try {
-      const p = this.me?.profile ?? {};
-
-      const payload = {
+      const result = await submitQuiz({
         mode: 'SOLO',
-        profile: {
-          fullName: p.fullName ?? null,
-          age: p.age ?? null,
-          gender: p.gender ?? null,
-        },
-        answers: this.buildOrderedAnswers(), // ✅ en orden del quiz
-      };
+        profile: this.profileData ?? null,
+        answers: this.buildOrderedAnswers()
+      });
 
-      const result = await submitQuiz(payload);
-
-      writeCache(result);
-
+      writeResultCache(result);
       this.router.navigateByUrl('/solo/result', { state: { result } as any });
-    } catch (e: any) {
-      this.errorMsg = e?.message ?? 'Error enviando el test';
+    } catch (error: any) {
+      this.errorMessage = error?.message ?? 'No se pudo enviar el test.';
     } finally {
-      this.submitting = false;
+      this.isSubmitting = false;
     }
   }
 
-  // ----- trackBy (evita re-render raro) -----
-  trackByOptionId = (_: number, o: QuizOption) => o.id;
+  protected trackByOptionId = (_: number, option: QuizOption) => option.id;
 }

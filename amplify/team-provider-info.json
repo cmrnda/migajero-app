@@ -19,20 +19,21 @@
       "function": {
         "migajerotestba4f68bc": {
           "deploymentBucketName": "amplify-migajerotest-dev-fb6ee-deployment",
-          "s3Key": "amplify-builds/migajerotestba4f68bc-56386f465730316e4a2f-build.zip"
+          "s3Key": "amplify-builds/migajerotestba4f68bc-426e2f32646b64686138-build.zip"
         },
         "migajerotest2461556e": {
           "deploymentBucketName": "amplify-migajerotest-dev-fb6ee-deployment",
-          "s3Key": "amplify-builds/migajerotest2461556e-452f51734b72596e6331-build.zip",
+          "s3Key": "amplify-builds/migajerotest2461556e-5a34574b6a794e725163-build.zip",
           "resultsTable": "migajeroresults",
           "bedrockModelId": "anthropic.claude-3-haiku-20240307-v1:0",
           "bedrockRegion": "us-east-1"
         },
         "migajerotest9adab8c1": {
           "deploymentBucketName": "amplify-migajerotest-dev-fb6ee-deployment",
-          "s3Key": "amplify-builds/migajerotest9adab8c1-695934574f4c796a714d-build.zip",
+          "s3Key": "amplify-builds/migajerotest9adab8c1-6537442f3832764b6674-build.zip",
           "profilesTable": "migajeroprofiles",
-          "resultsTable": "migajeroresults"
+          "resultsTable": "migajeroresults",
+          "duoInviteSecret": "awsumsa2026"
         }
       },
       "api": {

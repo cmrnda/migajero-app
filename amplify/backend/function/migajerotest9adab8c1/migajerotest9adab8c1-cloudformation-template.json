@@ -45,6 +45,9 @@
     },
     "resultsTable": {
       "Type": "String"
+    },
+    "duoInviteSecret": {
+      "Type": "String"
     }
   },
   "Conditions": {
@@ -123,6 +126,9 @@
             },
             "RESULTS_TABLE": {
               "Ref": "resultsTable"
+            },
+            "DUO_INVITE_SECRET": {
+              "Ref": "duoInviteSecret"
             }
           }
         },

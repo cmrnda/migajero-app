@@ -24,6 +24,10 @@
     {
       "cloudFormationParameterName": "resultsTable",
       "environmentVariableName": "RESULTS_TABLE"
+    },
+    {
+      "cloudFormationParameterName": "duoInviteSecret",
+      "environmentVariableName": "DUO_INVITE_SECRET"
     }
   ]
 }

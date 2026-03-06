@@ -1,25 +1,33 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { getMe, updateMe } from '../../core/api/migajero-api';
+import { APP_VERSION } from '../../core/config/app-info';
+import { GenderValue, getMe, updateMe } from '../../core/api/migajero-api';
 
 @Component({
   standalone: true,
   imports: [CommonModule, RouterModule, ReactiveFormsModule],
   templateUrl: './me.page.html'
 })
-export class MePage {
-  private readonly fb = inject(FormBuilder);
+export class MePage implements OnInit {
+  private readonly formBuilder = inject(FormBuilder);
   private readonly router = inject(Router);
 
-  isLoading = false;
-  saving = false;
+  protected readonly appVersion = APP_VERSION;
 
-  backendMissing = false;   // solo 404 real
-  errorMsg: string | null = null;
+  protected isLoading = false;
+  protected isSaving = false;
+  protected errorMessage: string | null = null;
 
-  readonly form = this.fb.group({
+  protected readonly genderOptions: Array<{ value: GenderValue; label: string }> = [
+    { value: 'F', label: 'Femenino' },
+    { value: 'M', label: 'Masculino' },
+    { value: 'X', label: 'No binario' },
+    { value: 'N', label: 'Prefiero no decirlo' }
+  ];
+
+  protected readonly form = this.formBuilder.group({
     fullName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(60)]],
     age: [null as number | null, [Validators.required, Validators.min(13), Validators.max(99)]],
     gender: ['', [Validators.required]]
@@ -27,46 +35,63 @@ export class MePage {
 
   async ngOnInit() {
     this.isLoading = true;
-    this.errorMsg = null;
-    this.backendMissing = false;
+    this.errorMessage = null;
 
     try {
-      const me = await getMe();
-      if (!me) { // 404 real
-        this.backendMissing = true;
-        return;
-      }
-      const p = me.profile ?? {};
+      const response = await getMe();
+      const profile = response.profile;
+
       this.form.patchValue({
-        fullName: p.fullName ?? '',
-        age: p.age ?? null,
-        gender: p.gender ?? ''
+        fullName: profile.fullName ?? '',
+        age: profile.age ?? null,
+        gender: profile.gender ?? ''
       });
-    } catch (e: any) {
-      this.errorMsg = e?.message ?? 'Error cargando perfil';
+    } catch (error: any) {
+      this.errorMessage = error?.message ?? 'No se pudo cargar tu perfil.';
     } finally {
       this.isLoading = false;
     }
   }
 
-  goBack() {
+  protected goBack() {
     this.router.navigateByUrl('/');
   }
 
-  async save() {
-    if (this.backendMissing) return;
-    if (this.form.invalid) return;
+  protected async save() {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
 
-    this.saving = true;
-    this.errorMsg = null;
+    this.isSaving = true;
+    this.errorMessage = null;
 
     try {
-      await updateMe(this.form.getRawValue());
-      this.goBack();
-    } catch (e: any) {
-      this.errorMsg = e?.message ?? 'Error guardando perfil';
+      const value = this.form.getRawValue();
+
+      await updateMe({
+        fullName: String(value.fullName).trim(),
+        age: Number(value.age),
+        gender: value.gender as GenderValue
+      });
+
+      this.router.navigateByUrl('/');
+    } catch (error: any) {
+      this.errorMessage = error?.message ?? 'No se pudo guardar tu perfil.';
     } finally {
-      this.saving = false;
+      this.isSaving = false;
     }
+  }
+
+  protected get fullNameControl() {
+    return this.form.controls.fullName;
+  }
+
+  protected get ageControl() {
+    return this.form.controls.age;
+  }
+
+  protected get genderControl() {
+    return this.form.controls.gender;
   }
 }

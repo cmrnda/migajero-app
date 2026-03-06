@@ -7,19 +7,16 @@ export const routes: Routes = [
     path: 'auth',
     loadChildren: () => import('./features/auth/auth.routes').then(m => m.AUTH_ROUTES)
   },
-
   {
     path: '',
     canActivate: [authGuard],
     loadComponent: () => import('./features/home/home.page').then(m => m.HomePage)
   },
-
   {
     path: 'me',
     canActivate: [authGuard],
     loadComponent: () => import('./features/me/me.page').then(m => m.MePage)
   },
-
   {
     path: 'solo/quiz',
     canActivate: [authGuard, soloGateGuard],
@@ -30,8 +27,13 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./features/solo/solo-result.page').then(m => m.SoloResultPage)
   },
-
-  { path: 'quiz', redirectTo: 'solo/quiz', pathMatch: 'full' },
-
-  { path: '**', redirectTo: '' }
+  {
+    path: 'quiz',
+    redirectTo: 'solo/quiz',
+    pathMatch: 'full'
+  },
+  {
+    path: '**',
+    redirectTo: ''
+  }
 ];

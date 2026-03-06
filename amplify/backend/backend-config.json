@@ -191,6 +191,14 @@
         }
       ]
     },
+    "AMPLIFY_function_migajerotest9adab8c1_duoInviteSecret": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "migajerotest9adab8c1"
+        }
+      ]
+    },
     "AMPLIFY_function_migajerotest9adab8c1_profilesTable": {
       "usedBy": [
         {

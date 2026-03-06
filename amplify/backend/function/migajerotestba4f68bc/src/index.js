@@ -5,13 +5,168 @@ const headers = {
   "Access-Control-Allow-Methods": "GET,OPTIONS",
 };
 
+function buildQuizDefinition() {
+  return {
+    version: "v2",
+    title: "Test Migajero",
+    disclaimer: "Es solo entretenimiento. No reemplaza ayuda profesional ni es diagnóstico.",
+    questions: [
+      {
+        id: "q1",
+        text: "Te responden con un “jajaja” y nada más. Tú:",
+        options: [
+          { id: "a", text: "Me basta, al menos respondió." },
+          { id: "b", text: "Respondo tranqui y sigo a lo mío." },
+          { id: "c", text: "No respondo. Tengo mejores cosas que hacer." },
+        ],
+      },
+      {
+        id: "q2",
+        text: "Te dicen “no quiero nada serio” pero te tratan como pareja. Tú:",
+        options: [
+          { id: "a", text: "Sigo ahí, capaz cambia." },
+          { id: "b", text: "Pregunto directo qué está pasando." },
+          { id: "c", text: "Sin claridad no me quedo." },
+        ],
+      },
+      {
+        id: "q3",
+        text: "Te cancelan a última hora y te dicen “ya será” sin fecha. Tú:",
+        options: [
+          { id: "a", text: "Todo bien, yo entiendo… otra vez." },
+          { id: "b", text: "Ok, pero tú propones día y hora." },
+          { id: "c", text: "Perfecto. Yo también cancelé mi interés." },
+        ],
+      },
+      {
+        id: "q4",
+        text: "Solo te escriben de noche con “¿qué haces?”. Tú:",
+        options: [
+          { id: "a", text: "Estoy libre, ya pues… caigo." },
+          { id: "b", text: "Respondo, pero sin regalarme." },
+          { id: "c", text: "Modo avión. Que hablen de día." },
+        ],
+      },
+      {
+        id: "q5",
+        text: "Te reaccionan historias, pero conversar nada. Tú:",
+        options: [
+          { id: "a", text: "Eso ya cuenta como interés, ¿no?" },
+          { id: "b", text: "Les sigo el juego un rato." },
+          { id: "c", text: "Reacción no es interés. Siguiente." },
+        ],
+      },
+      {
+        id: "q6",
+        text: "Te dicen “te extraño” pero no hacen nada por verte. Tú:",
+        options: [
+          { id: "a", text: "Me quedo esperando, capaz esta vez sí." },
+          { id: "b", text: "Le recuerdo que hechos matan palabras." },
+          { id: "c", text: "Yo extraño mi paz mental, gracias." },
+        ],
+      },
+      {
+        id: "q7",
+        text: "Te dejan en visto y vuelven dos días después como si nada. Tú:",
+        options: [
+          { id: "a", text: "Contesto igual, total no pasa nada." },
+          { id: "b", text: "Respondo corto y que se note." },
+          { id: "c", text: "No respondo. Punto final." },
+        ],
+      },
+      {
+        id: "q8",
+        text: "Te invitan solo cuando se les cae el plan principal. Tú:",
+        options: [
+          { id: "a", text: "Acepto. Igual quiero verle." },
+          { id: "b", text: "Depende. Una más y ya no." },
+          { id: "c", text: "No soy plan de emergencia." },
+        ],
+      },
+      {
+        id: "q9",
+        text: "Te hablan solo cuando están tristes o aburridos. Tú:",
+        options: [
+          { id: "a", text: "Aquí estoy siempre, ya pues." },
+          { id: "b", text: "Apoyo, pero no soy atención 24/7." },
+          { id: "c", text: "No soy terapia gratis, con cariño." },
+        ],
+      },
+      {
+        id: "q10",
+        text: "Te dicen: “Eres increíble, pero…”. Tú:",
+        options: [
+          { id: "a", text: "Me quedo con el “increíble”." },
+          { id: "b", text: "Pregunto qué significa ese “pero”." },
+          { id: "c", text: "Gracias. Sigo con mi vida." },
+        ],
+      },
+      {
+        id: "q11",
+        text: "Te piden fotos o atención, pero compromiso cero. Tú:",
+        options: [
+          { id: "a", text: "Accedo… algo debe sentir, ¿no?" },
+          { id: "b", text: "Primero respeto, luego vemos." },
+          { id: "c", text: "No doy beneficios sin reciprocidad." },
+        ],
+      },
+      {
+        id: "q12",
+        text: "Cuando preguntas qué son, te dicen “andamos viendo”. Tú:",
+        options: [
+          { id: "a", text: "Ok, sigo viendo también… solo yo." },
+          { id: "b", text: "Pido claridad y un mínimo de orden." },
+          { id: "c", text: "Si no hay definición, no hay acceso." },
+        ],
+      },
+      {
+        id: "q13",
+        text: "Te ghostean y vuelven con “perdón, estaba full”. Tú:",
+        options: [
+          { id: "a", text: "Se entiende… supongo." },
+          { id: "b", text: "Ok, pero no me desaparezcas así." },
+          { id: "c", text: "Full estaba yo… de paciencia." },
+        ],
+      },
+      {
+        id: "q14",
+        text: "En privado te tratan bonito, pero en público ni te ubican. Tú:",
+        options: [
+          { id: "a", text: "Mientras sea bonito, me basta." },
+          { id: "b", text: "Lo hablo. Ese juego no me gusta." },
+          { id: "c", text: "Si me escondes, me pierdes." },
+        ],
+      },
+      {
+        id: "q15",
+        text: "Te prometen “la próxima semana sí” y nunca cumplen. Tú:",
+        options: [
+          { id: "a", text: "Espero nomás… ya soy paciente profesional." },
+          { id: "b", text: "Una última, pero con fecha fija." },
+          { id: "c", text: "Promesa sin acción es puro cuento." },
+        ],
+      },
+    ],
+  };
+}
+
 exports.handler = async (event) => {
   try {
-    const method = event?.httpMethod || "GET";
-    if (method === "OPTIONS") {
-      return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
+    const method =
+      event?.httpMethod ||
+      event?.requestContext?.http?.method ||
+      event?.requestContext?.request?.method ||
+      "GET";
+
+    if (String(method).toUpperCase() === "OPTIONS") {
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ ok: true }),
+      };
     }
-    if (method !== "GET") {
+
+    if (String(method).toUpperCase() !== "GET") {
       return {
         statusCode: 405,
         headers,
@@ -19,154 +174,19 @@ exports.handler = async (event) => {
       };
     }
 
-    const version = event?.queryStringParameters?.v || "v1";
+    const quiz = buildQuizDefinition();
 
-    const quiz = {
-      version,
-      title: "Test Migajero",
-      disclaimer: "Solo entretenimiento. No es diagnóstico psicológico.",
-      questions: [
-        {
-          id: "q1",
-          text: "Te responden cada rato con un “jajaja” y nada más. Tú:",
-          options: [
-            { id: "a", text: "Me basta pues, al menos contestó.", score: 10, tags: ["breadcrumbing", "esperanza"] },
-            { id: "b", text: "Le respondo tranqui, sin apurarme.", score: 5, tags: ["ambiguedad"] },
-            { id: "c", text: "No respondo. Yo también tengo cosas que hacer.", score: 0, tags: ["autoestima", "limites"] }
-          ]
-        },
-        {
-          id: "q2",
-          text: "Te dicen “no quiero nada serio” pero te tratan como pareja. Tú:",
-          options: [
-            { id: "a", text: "Sigo nomás… capaz cambia pues.", score: 10, tags: ["esperanza", "ambiguedad"] },
-            { id: "b", text: "Le pregunto directo: ¿qué somos al final?", score: 4, tags: ["limites"] },
-            { id: "c", text: "Sin claridad no hay trato. Me voy con estilo.", score: 0, tags: ["autoestima"] }
-          ]
-        },
-        {
-          id: "q3",
-          text: "Te cancelan a última hora y te dicen “ya será” (sin fecha). Tú:",
-          options: [
-            { id: "a", text: "Todo bien, yo entiendo… (otra vez).", score: 9, tags: ["breadcrumbing"] },
-            { id: "b", text: "Ok, pero tú pon día y hora de una.", score: 3, tags: ["limites"] },
-            { id: "c", text: "Perfecto, yo también cancelé mi interés.", score: 0, tags: ["autoestima"] }
-          ]
-        },
-        {
-          id: "q4",
-          text: "Solo te escriben de noche con “¿qué haces?” Tú:",
-          options: [
-            { id: "a", text: "Estoy libre, obvio pues ", score: 10, tags: ["breadcrumbing"] },
-            { id: "b", text: "Respondo, pero con distancia, ya.", score: 6, tags: ["ambiguedad"] },
-            { id: "c", text: "Modo avión. Mañana hablamos con luz del día.", score: 0, tags: ["limites"] }
-          ]
-        },
-        {
-          id: "q5",
-          text: "Te reaccionan historias, pero conversar… nada. Tú:",
-          options: [
-            { id: "a", text: "Eso ya es señal pues, ¿no? 🥹", score: 9, tags: ["esperanza"] },
-            { id: "b", text: "Les sigo el jueguito un rato.", score: 5, tags: ["ambiguedad"] },
-            { id: "c", text: "Reacción no es interés. Next, gracias.", score: 0, tags: ["autoestima"] }
-          ]
-        },
-        {
-          id: "q6",
-          text: "Te dicen “te extraño” pero no hacen nada por verte. Tú:",
-          options: [
-            { id: "a", text: "Yo sí siento, me quedo esperando pues.", score: 10, tags: ["esperanza", "ambiguedad"] },
-            { id: "b", text: "Le digo: hechos > palabras, ya.", score: 3, tags: ["limites"] },
-            { id: "c", text: "Te extraño yo: mi paz mental.", score: 0, tags: ["autoestima"] }
-          ]
-        },
-        {
-          id: "q7",
-          text: "Te dejan en visto y vuelven dos días después como si nada. Tú:",
-          options: [
-            { id: "a", text: "Yo contesto igual… no pasa nada, che.", score: 9, tags: ["breadcrumbing"] },
-            { id: "b", text: "Contesto corto. Que se note el mensaje.", score: 5, tags: ["limites"] },
-            { id: "c", text: "No respondo. Punto y aparte.", score: 0, tags: ["autoestima", "limites"] }
-          ]
-        },
-        {
-          id: "q8",
-          text: "Te invitan solo cuando se les cae el plan principal. Tú:",
-          options: [
-            { id: "a", text: "Acepto. Soy plan B pero con corazón.", score: 10, tags: ["breadcrumbing"] },
-            { id: "b", text: "Depende… una más y ya no.", score: 5, tags: ["limites"] },
-            { id: "c", text: "No soy plan de emergencia, gracias.", score: 0, tags: ["autoestima"] }
-          ]
-        },
-        {
-          id: "q9",
-          text: "Te hablan solo cuando están tristes o aburridos. Tú:",
-          options: [
-            { id: "a", text: "Aquí estoy. Siempre. Ya pues 🫠", score: 10, tags: ["esperanza"] },
-            { id: "b", text: "Apoyo, pero tampoco soy 24/7.", score: 4, tags: ["limites"] },
-            { id: "c", text: "No soy terapia gratis, con cariño.", score: 0, tags: ["autoestima"] }
-          ]
-        },
-        {
-          id: "q10",
-          text: "Te dicen: “Eres increíble, pero…” Tú:",
-          options: [
-            { id: "a", text: "Me quedo por el “increíble” nomás.", score: 9, tags: ["ambiguedad", "esperanza"] },
-            { id: "b", text: "Le pregunto: ¿qué significa ese “pero”?", score: 4, tags: ["limites"] },
-            { id: "c", text: "Gracias. Siguiente capítulo de mi vida.", score: 0, tags: ["autoestima"] }
-          ]
-        },
-        {
-          id: "q11",
-          text: "Te piden fotos/atención, pero compromiso cero. Tú:",
-          options: [
-            { id: "a", text: "Accedo… total me quiere, ¿no? ", score: 10, tags: ["breadcrumbing"] },
-            { id: "b", text: "Negocio mínimo respeto, de una.", score: 4, tags: ["limites"] },
-            { id: "c", text: "No doy beneficios sin contrato.", score: 0, tags: ["autoestima"] }
-          ]
-        },
-        {
-          id: "q12",
-          text: "Cuando preguntas qué son, te dicen “andamos viendo”. Tú:",
-          options: [
-            { id: "a", text: "Ok… sigo viendo también (solo yo).", score: 10, tags: ["ambiguedad", "esperanza"] },
-            { id: "b", text: "Pido timeline y claridad, sin drama.", score: 4, tags: ["limites"] },
-            { id: "c", text: "Si no hay definición, no hay acceso.", score: 0, tags: ["autoestima"] }
-          ]
-        },
-        {
-          id: "q13",
-          text: "Te ghostean y vuelven con “perdón, estaba full”. Tú:",
-          options: [
-            { id: "a", text: "Se entiende pues… la vida es dura 🥲", score: 10, tags: ["breadcrumbing"] },
-            { id: "b", text: "Ok, pero no me desaparezcas así, ya.", score: 4, tags: ["limites"] },
-            { id: "c", text: "Full estaba yo… de paciencia.", score: 0, tags: ["autoestima"] }
-          ]
-        },
-        {
-          id: "q14",
-          text: "En privado te tratan bonito, pero en público ni te ubican. Tú:",
-          options: [
-            { id: "a", text: "Mientras sea bonito… me basta pues.", score: 9, tags: ["ambiguedad"] },
-            { id: "b", text: "Lo converso, no me late ese jueguito.", score: 4, tags: ["limites"] },
-            { id: "c", text: "Si me escondes, me pierdes. Fin.", score: 0, tags: ["autoestima"] }
-          ]
-        },
-        {
-          id: "q15",
-          text: "Te prometen: “la próxima semana sí” y nunca cumplen. Tú:",
-          options: [
-            { id: "a", text: "Yo espero… soy paciente profesional", score: 10, tags: ["esperanza"] },
-            { id: "b", text: "Una última, pero con fecha fija.", score: 5, tags: ["limites"] },
-            { id: "c", text: "Promesa sin acción = puro cuento.", score: 0, tags: ["autoestima"] }
-          ]
-        }
-      ]
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify(quiz),
     };
-
-    return { statusCode: 200, headers, body: JSON.stringify(quiz) };
-  } catch (e) {
-    console.error("QUIZ_ERROR", e);
-    return { statusCode: 500, headers, body: JSON.stringify({ message: "quiz failed" }) };
+  } catch (error) {
+    console.error("QUIZ_ERROR", error);
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ message: "Quiz failed" }),
+    };
   }
 };
